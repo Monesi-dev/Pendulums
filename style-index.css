@@ -1,7 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap');
+
 body {
     margin: 0px;
+    background-color: black;
 }
 
-html, body {
-    overflow: hidden;
+
+.title{
+    color:white;
+    margin-top:5%;
+    font-family: 'Quicksand', sans-serif;
+    font-size:50px;
 }
+footer{
+    background-color: white;
+    width: 103%;
+    height:5%;
+    padding:1%;
+    text-align:center;
+    margin-bottom: 0px;
+}
+form{
+    background-color: white;
+    color: black;
+    width:45%;
+    padding: 1%;
+    text-align: left;
+    margin-bottom: 4%;
+    border-radius: 20px;
+    border: 7px solid orange;
+    font-family: 'Quicksand', sans-serif;
+}
+select{
+    background-color: black;
+    color: white;
+    padding: 1%;
+    margin-left: 10px;
+    width: 30%;
+}
+label{
+    margin-bottom: 10%;
+    margin-top: 10%;
+}
+.slider {
+    margin-top:4%;
+    -webkit-appearance: none;
+    width: 80%;
+    height: 15px;
+    border-radius: 5px;  
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%; 
+    background: orange;
+    cursor: pointer;
+  }
+  
+  .slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background:orange;
+    cursor: pointer;
+  }
