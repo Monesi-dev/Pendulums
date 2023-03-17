@@ -5,14 +5,22 @@
             Pendulums Simulation
         </title>
         <link rel="stylesheet" href="style-index.css">
-        <script type="text/javascript" src="form.js"></script>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
     </head>
     <body>
-        <center>
+        <!---<canvas id="canvas"></canvas>--->
+        <script src="Rainbow.js"></script>
+        <script src="Pendulum.js"></script>
+        <script src="SinglePendulum.js"></script>
+        <script src="DoublePendulum.js"></script>
+        <script src="index.js"></script>
+        <center id="main">
             <h1 class="title">
                 Simulating pendulums' behaviour 
             </h1>
-            <form id="form">
+            <form id="form"onsubmit="return false">
                 <h2>
                 Configure simulation
                 </h2>
