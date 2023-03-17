@@ -72,3 +72,9 @@ label{
     background:orange;
     cursor: pointer;
   }
+  button{
+    padding: 4%;
+    background-color: orange;
+    border-radius: 30px;
+    border: 0px;
+  }
