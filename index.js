@@ -7,55 +7,86 @@ function getRandomAngle() {
     return 2 * Math.PI * getRandomNumber(0.135, 0.65);
 };
 
+function getDataFromForm() {
 
-function start() {
+    // Gets the type of Pendulum that will be simulated (1 => Single) (2 => Double)
+    const typeOfPendulum = document.getElementById("subject").value;    
+    let pendulumData;
 
-    //Retrieving params
-    const pend = document.getElementById("subject").value;
-    // Setting the width and height of the canvas, so that it fills the screen
+    // 1 => Single Pendulum
+    if (typeOfPendulum == 1) {
+        pendulumData = {
+            count: Number(document.getElementById("myRange").value),            // Number of Pendulums Rendered
+            mass1: 10 * Number(document.getElementById("myRangec").value),      // Value of the First Mass
+            length1: Number(document.getElementById("myRanged").value)          // Length of the First Rod
+        };   
+    }
+
+    // 2 => Double Pendulum
+    else if (typeOfPendulum == 2) {
+        pendulumData = {
+            count: Number(document.getElementById("myRange").value),             // Number of Pendulums Rendered
+            mass1: 10 * Number(document.getElementById("myRangec").value),       // Value of the First Mass
+            length1: Number(document.getElementById("myRanged").value),          // Length of the First Rod
+            mass2: 10 * Number(document.getElementById("myRangee").value),       // Value of the Second Mass
+            length2: Number(document.getElementById("myRangef").value)           // Length of the Second Rod
+        };
+    }
+
+    // Starts Pendulum Simulation
+    start(typeOfPendulum, pendulumData);
+}
+
+// Starts the Simulation
+function start(typeOfPendulum, pendulumData) {
+
+    /*
+     *  typeOfPendulum specifies which type of pendulum you want to simulate
+     *  1 => Single Pendulum     2 => Double Pendulum
+     *
+     *  pendulumData is an object containing the information required to simulate the pendulum
+     *  SinglePendulum => { count, mass1, length1 }
+     *  DoublePendulum => { count, mass1, length1, mass2, length2 }
+     */  
+
+    // Removing Form and Creating Canvas
+    document.getElementById("main").removeChild(document.getElementById("form"));
     const canvas = document.createElement('canvas');
     canvas.id = "canvas";
-    document.getElementById("main").appendChild(canvas);
+    document.body.appendChild(canvas);
+
+    // Setting the width and height of the canvas, so that it fills the screen
     const canvasW = document.body.clientWidth;
-    const canvasH = document.body.clientHeight;
+    const canvasH = 2 * document.body.clientHeight;
     canvas.width = canvasW;
-    canvas.height = canvasH;
+    canvas.height = canvasH ;
+    console.log(canvasH);
 
 
-    // transforming the canvas, so that the y axis goes from bottom to top and centering the origin
+    // Transforming the canvas, so that the y axis goes from bottom to top and centering the origin
     const ctx = canvas.getContext('2d');
     ctx.transform(1, 0, 0, -1, canvasW / 2, canvasH / 2);
 
     // Setting the number of pendulums and randomly choosing an initial condition
-    const doublePendulums = [];                             // Array that contains the Pendulums
-    const doublePendulumsCount = document.getElementById("myRange").value;                        // Number of Pendulums Spawned
-    const framesPerSecond = document.getElementById("myRangea").value;                             // Framerate
-    const mass1 = document.getElementById("myRangec").value;                                       // Value of the First Mass
-    const length1 = document.getElementById("myRanged").value;   // Length of the First Rod
-    
+    const pendulums = [];                                   // Array that contains the Pendulums
+    const pendulumsCount = pendulumData.count;              // Number of Pendulums Spawned
+    const framesPerSecond = 120;                            // Framerate
+    const mass1 = pendulumData.mass1;                       // Value of the First Mass
+    const length1 = pendulumData.length1;                   // Length of the First Rod
+    const mass2 = pendulumData.mass2;                       // Value of the Second Mass
+    const length2 = pendulumData.length2;                   // Length of the Second Rod
     const angle1 = getRandomAngle();                        // Angle of the First Rod (Y-axis)
     const angle2 = getRandomAngle();                        // Angle of the Second Rod (Y-axis)
     const gravity = 10;                                     // Value of Gravity
-    const dt = document.getElementById("myRangeb").value;                                        // Time Step
-    document.getElementById("main").removeChild(document.getElementById("form"));
-    /*
-    // Generating Color Gradient using a Library
-    const rainbow = new Rainbow(); 
-    rainbow.setNumberRange(1, doublePendulumsCount);
-    rainbow.setSpectrum('red', 'green');
-    let colors = [];
-    for (let i = 1; i <= doublePendulumsCount; i++) {
-        let hexColor = '#' + rainbow.colourAt(i);
-        colors.push(hexColor);
-    }
-    */
+    const dt = 0.04;                                        // Time Step
+
 
     // Creating Double Pendulums with Slight Variations
-    for (let i = 0; i < doublePendulumsCount; i++) {
+    for (let i = 0; i < pendulumsCount; i++) {
 
-        if (pend == 2) {
-            const mass2 = document.getElementById("myRangee").value;                                       // Value of the Second Mass
-            const length2 = document.getElementById("myRangef").value;   // Length of the Second Rod
+        // Creating a Double Pendulum
+        if (typeOfPendulum == 2) {
+
             const doublePendulum = new DoublePendulum({
               
                 // Fixed Initial Conditions
@@ -68,19 +99,19 @@ function start() {
                 gravity: gravity,
                 dt: dt,
                 ctx: ctx,
-                // color: colors[i],
                 color: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
                 
                 // Tiny changes of the beginning angle of the second pendulum to stimulate CHAOS!
-                angle2: angle2 + i * 0.02,
+                angle2: angle2 + i * 0.001,
 
             });
 
             // Adding Pendulum
-            doublePendulums.push(doublePendulum);
+            pendulums.push(doublePendulum);
         }
 
-        else if (pend == 1) {
+        // Creatiing a Single Pendulum
+        else if (typeOfPendulum == 1) {
 
             const pendulum = new SinglePendulum({
 
@@ -89,7 +120,7 @@ function start() {
                 fixedPointY: 0,
                 length: length1,
                 mass: 1,
-                angle: angle1 + i * 0.002,
+                angle: angle1 + i * 0.001,
                 gravity: gravity,
                 dt: dt,
                 ctx: ctx, 
@@ -98,7 +129,7 @@ function start() {
             })
 
             // Adding Pendulum
-            doublePendulums.push(pendulum);
+            pendulums.push(pendulum);
         }
     }
 
@@ -110,14 +141,15 @@ function start() {
       ctx.fillRect(-canvas.width / 2, canvas.height / 2, canvas.width, -canvas.height);
 
       // Calculating the coordinates and drawing the double pendulums
-      doublePendulums.forEach(doublePendulum => {
-        doublePendulum.calculate();
-        doublePendulum.draw();
+      pendulums.forEach(pendulum => {
+        pendulum.calculate();
+        pendulum.draw();
       })
 
     }, 1000 / framesPerSecond); // Computing Period in Milliseconds
 
 }
+
 
 var state=0;
 function formModifyer(){
@@ -152,63 +184,68 @@ function formModifyer(){
         form.appendChild(div1);
         div2.innerHTML = input1.value;
         input1.addEventListener('input', updateData);
-        //frame rate
-        var bra = document.createElement('br');
-        var br1a = document.createElement('br');
-        var br2a= document.createElement('br');
-        var label1a = document.createElement('label');
-        label1a.appendChild(document.createTextNode("Framerate: "));
-        label1a.for = "numbera";
-        var input1a = document.createElement('input');
-        input1a.type = 'range';
-        input1a.id = 'myRangea';
-        input1a.name = 'numbera';
-        input1a.min = '70';
-        input1a.max = '140';
-        input1a.value = '120';
-        input1a.classList.add('slider');
-        var div1a = document.createElement('div');
-        div1a.classList.add("slidecontainer");
-        var div2a = document.createElement('b');
-        div2a.id = "demoa";
-        label1a.appendChild(div2a);
-        div1a.appendChild(input1a);
-        form.appendChild(bra);
-        form.appendChild(br1a);
-        form.appendChild(br2a);
-        form.appendChild(label1a);
-        form.appendChild(div1a);
-        div2a.innerHTML = input1a.value;
-        input1a.addEventListener('input', updateDataa);
-        //timestep
-        var brb = document.createElement('br');
-        var br1b = document.createElement('br');
-        var br2b= document.createElement('br');
-        var label1b = document.createElement('label');
-        label1b.appendChild(document.createTextNode("Timestep (ms): "));
-        label1b.for = "numberb";
-        var input1b = document.createElement('input');
-        input1b.type = 'range';
-        input1b.id = 'myRangeb';
-        input1b.name = 'numberb';
-        input1b.min = '10';
-        input1b.max = '500';
-        input1b.value = '40';
-        input1b.classList.add('slider');
-        var div1b = document.createElement('div');
-        div1b.classList.add("slidecontainer");
-        var div2b = document.createElement('b');
-        div2b.id = "demob";
-        label1b.appendChild(div2b);
-        div1b.appendChild(input1b);
-        form.appendChild(brb);
-        form.appendChild(br1b);
-        form.appendChild(br2b);
-        form.appendChild(label1b);
-        form.appendChild(div1b);
-        div2b.innerHTML = input1b.value;
-        input1b.addEventListener('input', updateDatab);
-        //mass 1
+
+        /* frame rate
+         * var bra = document.createElement('br');
+         * var br1a = document.createElement('br');
+         * var br2a= document.createElement('br');
+         * var label1a = document.createElement('label');
+         * label1a.appendChild(document.createTextNode("Framerate: "));
+         * label1a.for = "numbera";
+         * var input1a = document.createElement('input');
+         * input1a.type = 'range';
+         * input1a.id = 'myRangea';
+         * input1a.name = 'numbera';
+         * input1a.min = '70';
+         * input1a.max = '140';
+         * input1a.value = '120';
+         * input1a.classList.add('slider');
+         * var div1a = document.createElement('div');
+         * div1a.classList.add("slidecontainer");
+         * var div2a = document.createElement('b');
+         * div2a.id = "demoa";
+         * label1a.appendChild(div2a);
+         * div1a.appendChild(input1a);
+         * form.appendChild(bra);
+         * form.appendChild(br1a);
+         * form.appendChild(br2a);
+         * form.appendChild(label1a);
+         * form.appendChild(div1a);
+         * div2a.innerHTML = input1a.value;
+         * input1a.addEventListener('input', updateDataa);
+         */
+
+        /* timestep
+         * var brb = document.createElement('br');
+         * var br1b = document.createElement('br');
+         * var br2b= document.createElement('br');
+         * var label1b = document.createElement('label');
+         * label1b.appendChild(document.createTextNode("Timestep (ms): "));
+         * label1b.for = "numberb";
+         * var input1b = document.createElement('input');
+         * input1b.type = 'range';
+         * input1b.id = 'myRangeb';
+         * input1b.name = 'numberb';
+         * input1b.min = '10';
+         * input1b.max = '500';
+         * input1b.value = '40';
+         * input1b.classList.add('slider');
+         * var div1b = document.createElement('div');
+         * div1b.classList.add("slidecontainer");
+         * var div2b = document.createElement('b');
+         * div2b.id = "demob";
+         * label1b.appendChild(div2b);
+         * div1b.appendChild(input1b);
+         * form.appendChild(brb);
+         * form.appendChild(br1b);
+         * form.appendChild(br2b);
+         * form.appendChild(label1b);
+         * form.appendChild(div1b);
+         * div2b.innerHTML = input1b.value;
+         * input1b.addEventListener('input', updateDatab);
+         */
+
+         //mass 1
         var brc = document.createElement('br');
         var br1c = document.createElement('br');
         var br2c= document.createElement('br');
@@ -490,7 +527,7 @@ function addButton(){
   bold.innerHTML = "Submit";
   var center = document.createElement("center");
   center.id = "center";
-  button.addEventListener('click', start);
+  button.addEventListener('click', getDataFromForm);
   center.appendChild(button);
   button.appendChild(bold);
   form.appendChild(br1g);
