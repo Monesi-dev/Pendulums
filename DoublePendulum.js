@@ -1,6 +1,6 @@
 class DoublePendulum extends Pendulum {
 
-    constructor({mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, color }) {
+    constructor({mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color }) {
         
         // Invoke the Constructor of Base Class
         super()                         // Constructor of Pendulum Class
@@ -18,7 +18,9 @@ class DoublePendulum extends Pendulum {
         this.angleAccel2 = 0            // Initial Angular Acceleration of the Second Rod
         this.gravity = gravity          // Value of Gravitational Acceleration
         this.dt = dt                    // The Time Step used for Integration
+        this.currentTime = 0            // This will be useful when Plotting the Angles
         this.ctx = ctx                  // Something needed to draw the Pendulum
+        this.ctxPlot = ctxPlot          // Something needed to draw the Pendulum
         this.color = color              // The Color of the Pendulum
 
     }
@@ -29,6 +31,11 @@ class DoublePendulum extends Pendulum {
         // Shortcuts to make the Math look cleaner without many "this." or "Math."
         const { sin, cos } = Math; 
         const {mass1, length1, angle1, angleVel1, mass2, length2, angle2, angleVel2, dt, gravity} = this;
+
+        // This will be useful when Plotting the Angles against Time
+        this.oldAngle1 = this.angle1;
+        this.oldAngle2 = this.angle2;
+        this.currentTime += dt;
 
         // Computes the Angular Accelerations of the First Rod
         const chunk1 = -sin(angle1 - angle2)*mass2*length2*angleVel2**2;
@@ -56,6 +63,7 @@ class DoublePendulum extends Pendulum {
 
     }
 
+    // This Function draws the Double Pendulum
     draw() {
 
         // Shortcuts to make the following lines cleaner by avoiding repeating "this." or "Math."
@@ -96,6 +104,55 @@ class DoublePendulum extends Pendulum {
         ctx.arc(x2, y2, circleRadius, 0, 2 * PI);
         ctx.fill();
         
+    }
+
+    // This Function plots the two angles
+    plotAngles() {
+        
+        // Declaring Variables
+        const { PI, abs } = Math;
+        console.log(PI);
+        let { ctxPlot, dt, currentTime, oldAngle1, oldAngle2, angle1, angle2 } = this;   // Makes the Code Cleaner 
+        const prevTime = currentTime - dt;                  // The Instant in which previous Angles were Plotted
+        const color1 = "red";                               // Color for the First Angle
+        const color2 = "blue";                              // Color for the Second Angle
+        const angleOffset = -280;                           // This is used to center the plot in the Canvas
+        const angleMultiplier = 70;                         // This is used to increase the Amplitude while Plotting 
+        const timeMultiplier = 10;                          // Drawing on Canvas with small time steps is tricky
+
+        // Adjusting Angles to plot between -PI and PI
+        while (oldAngle1 > PI) oldAngle1 -= PI;         // If the angle goes beyond 180 degree it will be plotted from below
+        while (oldAngle2 > PI) oldAngle2 -= PI;           
+        while (angle1 > PI) angle1 -= PI;                
+        while (angle2 > PI) angle2 -= PI;
+        while (oldAngle1 < PI) oldAngle1 += PI;         // If the angle goes below -180 degree it will be plotted from above
+        while (oldAngle2 < PI) oldAngle2 += PI;
+        while (angle1 < PI) angle1 += PI;
+        while (angle2 < PI) angle2 += PI;
+
+        /*
+         * If the new angle goes beyond the threshold and starts from below the line won't be drawn
+         * For instance if the old angle is 3.135 and the new angle is -3.139 the line won't be drawn
+         */
+
+        // Drawing First Angle if it hasn't changed abruptly
+        if (abs(angle1 - oldAngle1) < PI/2) {           
+            ctxPlot.strokeStyle = color1;        
+            ctxPlot.beginPath();
+            ctxPlot.moveTo(timeMultiplier * prevTime, angleMultiplier * oldAngle1 + angleOffset);
+            ctxPlot.lineTo(timeMultiplier * currentTime, angleMultiplier * angle1 + angleOffset);
+            ctxPlot.stroke();
+        }
+
+        // Drawing Second Angle if it hasn't changed abruptly
+        if (abs(angle2 - oldAngle2) < PI/2) {
+            ctxPlot.strokeStyle = color2;        
+            ctxPlot.beginPath();
+            ctxPlot.moveTo(timeMultiplier * prevTime, angleMultiplier * oldAngle2 + angleOffset);
+            ctxPlot.lineTo(timeMultiplier * currentTime, angleMultiplier * angle2 + angleOffset);
+            ctxPlot.stroke();
+        }
+
     }
 }
 

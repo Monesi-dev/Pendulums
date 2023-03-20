@@ -80,6 +80,18 @@ function start(typeOfPendulum, pendulumData) {
     const gravity = 10;                                     // Value of Gravity
     const dt = 0.04;                                        // Time Step
 
+    // Creating Canvas to Plot Data
+    const plot = document.createElement('canvas');
+    plot.id = "plot";
+    document.body.appendChild(plot);
+
+    // Setting the width and height of the Plot
+    const plotW = canvasW; //document.body.clientWidth;
+    const plotH = canvasH; //document.body.clientHeight;
+    plot.width = plotW;
+    plot.height = plotH ;
+    const ctxPlot = plot.getContext('2d');
+    ctxPlot.transform(1, 0, 0, 1, 0, plotH / 2);
 
     // Creating Double Pendulums with Slight Variations
     for (let i = 0; i < pendulumsCount; i++) {
@@ -99,6 +111,7 @@ function start(typeOfPendulum, pendulumData) {
                 gravity: gravity,
                 dt: dt,
                 ctx: ctx,
+                ctxPlot: ctxPlot,
                 color: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
                 
                 // Tiny changes of the beginning angle of the second pendulum to stimulate CHAOS!
@@ -145,6 +158,7 @@ function start(typeOfPendulum, pendulumData) {
         pendulum.calculate();
         pendulum.draw();
       })
+      pendulums[0].plotAngles();
 
     }, 1000 / framesPerSecond); // Computing Period in Milliseconds
 
