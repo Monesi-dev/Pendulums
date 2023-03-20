@@ -1,10 +1,10 @@
 class DoublePendulum extends Pendulum {
 
-    constructor({mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color }) {
-        
+    constructor({ mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color }) {
+
         // Invoke the Constructor of Base Class
         super()                         // Constructor of Pendulum Class
-        
+
         // Initialize Variables
         this.mass1 = mass1;             // Mass attached to the end of the First Rod
         this.length1 = length1;         // Length of the First Rod
@@ -29,8 +29,8 @@ class DoublePendulum extends Pendulum {
     calculate() {
 
         // Shortcuts to make the Math look cleaner without many "this." or "Math."
-        const { sin, cos } = Math; 
-        const {mass1, length1, angle1, angleVel1, mass2, length2, angle2, angleVel2, dt, gravity} = this;
+        const { sin, cos } = Math;
+        const { mass1, length1, angle1, angleVel1, mass2, length2, angle2, angleVel2, dt, gravity } = this;
 
         // This will be useful when Plotting the Angles against Time
         this.oldAngle1 = this.angle1;
@@ -38,22 +38,22 @@ class DoublePendulum extends Pendulum {
         this.currentTime += dt;
 
         // Computes the Angular Accelerations of the First Rod
-        const chunk1 = -sin(angle1 - angle2)*mass2*length2*angleVel2**2;
-        const chunk2 = -(mass1 + mass2)*gravity*sin(angle1);
-        const chunk3 = length1*(mass1 + mass2) + mass2*length1*cos(angle1 - angle2)**2;
-        this.angleAccel1 = (chunk1 + chunk2)/chunk3;
+        const chunk1 = -sin(angle1 - angle2) * mass2 * length2 * angleVel2 ** 2;
+        const chunk2 = -(mass1 + mass2) * gravity * sin(angle1);
+        const chunk3 = length1 * (mass1 + mass2) + mass2 * length1 * cos(angle1 - angle2) ** 2;
+        this.angleAccel1 = (chunk1 + chunk2) / chunk3;
 
         // Computes the Angular Accelerations of the First Rod
-        const chunk4 = length1*sin(angle1 - angle2)*(mass1 + mass2)*angleVel1**2;
-        const chunk5 = -gravity*sin(angle2)*(mass1 + mass2);
-        const chunk6 = length2*(mass1 + mass2) - mass2*length2*cos(angle1 - angle2)**2;
-        this.angleAccel2 = (chunk4 + chunk5)/chunk6;
+        const chunk4 = length1 * sin(angle1 - angle2) * (mass1 + mass2) * angleVel1 ** 2;
+        const chunk5 = -gravity * sin(angle2) * (mass1 + mass2);
+        const chunk6 = length2 * (mass1 + mass2) - mass2 * length2 * cos(angle1 - angle2) ** 2;
+        this.angleAccel2 = (chunk4 + chunk5) / chunk6;
 
         // Computes Velocities and Angles of both Rods
-        this.angleVel1 += this.angleAccel1*dt;
-        this.angle1 += this.angleVel1*dt;
-        this.angleVel2 += this.angleAccel2*dt;
-        this.angle2 += this.angleVel2*dt;
+        this.angleVel1 += this.angleAccel1 * dt;
+        this.angle1 += this.angleVel1 * dt;
+        this.angleVel2 += this.angleAccel2 * dt;
+        this.angle2 += this.angleVel2 * dt;
 
         // Computes X and Y of the two Masses
         this.x1 = length1 * sin(this.angle1);
@@ -81,18 +81,18 @@ class DoublePendulum extends Pendulum {
         ctx.beginPath();
         ctx.arc(suspensionPointX, suspensionPointY, circleRadius, 0, 2 * PI);
         ctx.fill();
-        
+
         // Draws the First Rod
         ctx.beginPath();
         ctx.moveTo(suspensionPointX, suspensionPointY);
         ctx.lineTo(x1, y1);
         ctx.stroke();
-        
+
         // Draws the First Mass
         ctx.beginPath();
         ctx.arc(x1, y1, circleRadius, 0, 2 * PI);
         ctx.fill();
-        
+
         // Draws the Second Rod
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -103,12 +103,12 @@ class DoublePendulum extends Pendulum {
         ctx.beginPath();
         ctx.arc(x2, y2, circleRadius, 0, 2 * PI);
         ctx.fill();
-        
+
     }
 
     // This Function plots the two angles
-    plotAngles() {
-        
+    plot() {
+
         // Declaring Variables
         const { PI, abs } = Math;
         console.log(PI);
@@ -120,24 +120,28 @@ class DoublePendulum extends Pendulum {
         const angleMultiplier = 70;                         // This is used to increase the Amplitude while Plotting 
         const timeMultiplier = 10;                          // Drawing on Canvas with small time steps is tricky
 
-        // Adjusting Angles to plot between -PI and PI
-        while (oldAngle1 > PI) oldAngle1 -= PI;         // If the angle goes beyond 180 degree it will be plotted from below
-        while (oldAngle2 > PI) oldAngle2 -= PI;           
-        while (angle1 > PI) angle1 -= PI;                
-        while (angle2 > PI) angle2 -= PI;
-        while (oldAngle1 < PI) oldAngle1 += PI;         // If the angle goes below -180 degree it will be plotted from above
-        while (oldAngle2 < PI) oldAngle2 += PI;
-        while (angle1 < PI) angle1 += PI;
-        while (angle2 < PI) angle2 += PI;
+        // Adjusting Angles to plot between 0 and 2 * PI
+        oldAngle1 += PI;
+        oldAngle2 += PI;
+        angle1 += PI;
+        angle2 += PI;
+        while (oldAngle1 > 2 * PI) oldAngle1 -= 2 * PI;     // If the angle goes beyond 180 degree it will be plotted from below
+        while (oldAngle2 > 2 * PI) oldAngle2 -= 2 * PI;
+        while (angle1 > 2 * PI) angle1 -= 2 * PI;
+        while (angle2 > 2 * PI) angle2 -= 2 * PI;
+        while (oldAngle1 < 0) oldAngle1 += 2 * PI;          // If the angle goes below -180 degree it will be plotted from above
+        while (oldAngle2 < 0) oldAngle2 += 2 * PI;
+        while (angle1 < 0) angle1 += 2 * PI;
+        while (angle2 < 0) angle2 += 2 * PI;
 
         /*
          * If the new angle goes beyond the threshold and starts from below the line won't be drawn
-         * For instance if the old angle is 3.135 and the new angle is -3.139 the line won't be drawn
+         * For instance if the old angle is 6.27 and the new angle is 0.139 the line won't be drawn
          */
 
         // Drawing First Angle if it hasn't changed abruptly
-        if (abs(angle1 - oldAngle1) < PI/2) {           
-            ctxPlot.strokeStyle = color1;        
+        if (abs(angle1 - oldAngle1) < PI / 2) {
+            ctxPlot.strokeStyle = color1;
             ctxPlot.beginPath();
             ctxPlot.moveTo(timeMultiplier * prevTime, angleMultiplier * oldAngle1 + angleOffset);
             ctxPlot.lineTo(timeMultiplier * currentTime, angleMultiplier * angle1 + angleOffset);
@@ -145,8 +149,8 @@ class DoublePendulum extends Pendulum {
         }
 
         // Drawing Second Angle if it hasn't changed abruptly
-        if (abs(angle2 - oldAngle2) < PI/2) {
-            ctxPlot.strokeStyle = color2;        
+        if (abs(angle2 - oldAngle2) < PI / 2) {
+            ctxPlot.strokeStyle = color2;
             ctxPlot.beginPath();
             ctxPlot.moveTo(timeMultiplier * prevTime, angleMultiplier * oldAngle2 + angleOffset);
             ctxPlot.lineTo(timeMultiplier * currentTime, angleMultiplier * angle2 + angleOffset);

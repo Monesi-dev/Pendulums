@@ -137,6 +137,7 @@ function start(typeOfPendulum, pendulumData) {
                 gravity: gravity,
                 dt: dt,
                 ctx: ctx, 
+                ctxPlot: ctxPlot,
                 color: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)
 
             })
@@ -158,7 +159,7 @@ function start(typeOfPendulum, pendulumData) {
         pendulum.calculate();
         pendulum.draw();
       })
-      pendulums[0].plotAngles();
+      pendulums[0].plot();
 
     }, 1000 / framesPerSecond); // Computing Period in Milliseconds
 
