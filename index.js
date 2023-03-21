@@ -181,7 +181,7 @@ function formModifyer(){
         //number of pendulums
         addSlider("Number of pendulums:  ", '1', '1', "20", "15");
          //mass 1
-        addSlider("Mass 1 (kg):", "2", "1", "30", "20");
+        addSlider("Mass 1 (kg): ", "2", "1", "30", "20");
         //length 1
         addSlider("Length 1 (cm): ", "3", "1", "500", "100");
         //angle 1
@@ -189,7 +189,7 @@ function formModifyer(){
         state = pendulum;
         if(pendulum==2){
           //mass 2
-          addSlider("Mass 2 (kg):", "4", "1", "30", "20");
+          addSlider("Mass 2 (kg): ", "4", "1", "30", "20");
           //length 2
           addSlider("Length 2 (cm): ", "5", "1", "500", "100");
           //angle 2
