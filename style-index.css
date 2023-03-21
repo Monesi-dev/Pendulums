@@ -38,6 +38,7 @@ select{
     padding: 1%;
     margin-left: 10px;
     width: 30%;
+    border: 0px;
 }
 label{
     margin-bottom: 10%;
