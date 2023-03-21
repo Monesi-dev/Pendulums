@@ -1,3 +1,10 @@
+/*Come vedere se il toggle e' attivato: 
+  if(document.getElementById("switch").checked==true)
+*/
+
+
+
+var previousPendulumsNumber = 15;
 // Utility Function
 function getRandomNumber(min, max) {
   return Math.random() * (max - min) + min;
@@ -8,7 +15,6 @@ function getRandomAngle() {
 };
 
 function getDataFromForm() {
-
     // Gets the type of Pendulum that will be simulated (1 => Single) (2 => Double)
     const typeOfPendulum = document.getElementById("subject").value;    
     let pendulumData;
@@ -18,7 +24,7 @@ function getDataFromForm() {
         pendulumData = {
             count: Number(document.getElementById("myRange1").value),            // Number of Pendulums Rendered
             mass1: 10 * Number(document.getElementById("myRange2").value),      // Value of the First Mass
-            length1: Number(document.getElementById("myRanged3").value)          // Length of the First Rod
+            length1: Number(document.getElementById("myRange3").value)          // Length of the First Rod
         };   
     }
 
@@ -170,18 +176,24 @@ function formModifyer(){
     var pendulum = document.getElementById('subject').value;
     var form = document.getElementById('form');
     if(state==0){
+        //toggle
+        addToggle();
         //number of pendulums
         addSlider("Number of pendulums:  ", '1', '1', "20", "15");
          //mass 1
         addSlider("Mass 1 (kg):", "2", "1", "30", "20");
         //length 1
         addSlider("Length 1 (cm): ", "3", "1", "500", "100");
+        //angle 1
+        addSlider("Initial angle 1 (degrees): ", "6", "-180", "180", "-60");
         state = pendulum;
         if(pendulum==2){
           //mass 2
           addSlider("Mass 2 (kg):", "4", "1", "30", "20");
           //length 2
           addSlider("Length 2 (cm): ", "5", "1", "500", "100");
+          //angle 2
+          addSlider("Initial angle 2 (degrees): ", "7", "-180", "180", "-60");
           addButton();
           }
           else{
@@ -194,32 +206,18 @@ function formModifyer(){
       addSlider("Mass 2 (kg):", "4", "1", "30", "20");
       //length 2
       addSlider("Length 2 (cm): ", "5", "1", "500", "100");
+      //angle 2
+      addSlider("Initial angle 2 (degrees): ", "7", "-180", "180", "-60");
       addButton();
       state = pendulum;
     }
     else {
       //mass 2
-      var br1e = document.getElementById("br1-4");
-      var bre = document.getElementById("br-4");
-      var br2e = document.getElementById("br2-4");
-      var label1e = document.getElementById("label-4");
-      var div1e = document.getElementById("div1-4");
-      form.removeChild(bre);
-      form.removeChild(br1e);
-      form.removeChild(br2e);
-      form.removeChild(label1e);
-      form.removeChild(div1e);
+      removeSlider("4");
       //length 2
-      var br1f = document.getElementById("br1-5");
-      var brf = document.getElementById("br-5");
-      var br2f = document.getElementById("br2-5");
-      var label1f = document.getElementById("label-5");
-      var div1f = document.getElementById("div1-5");
-      form.removeChild(brf);
-      form.removeChild(br1f);
-      form.removeChild(br2f);
-      form.removeChild(label1f);
-      form.removeChild(div1f);
+      removeSlider("5");
+      //angle 2
+      removeSlider("7");
       state = pendulum;
   }
 }
@@ -265,16 +263,10 @@ function removeButton(){
 }
 
 function addSlider(label, id, min, max, value ){
-        var br = document.createElement('br');
-        br.id = "br-"+id;
-        var br1 = document.createElement('br');
-        br1.id = "br1-"+id;
-        var br2= document.createElement('br');
-        br2.id = "br2-"+id;
         var newlabel = document.createElement('label');
         newlabel.id = "label-"+id;
         newlabel.appendChild(document.createTextNode(label));
-        newlabel.for = "number"+id;
+        newlabel.htmlFor = "number"+id;
         var input = document.createElement('input');
         input.type = 'range';
         input.id = 'myRange'+id;
@@ -290,12 +282,83 @@ function addSlider(label, id, min, max, value ){
         div2.id = "demo"+id;
         newlabel.appendChild(div2);
         div1.appendChild(input);
-        form.appendChild(br);
-        form.appendChild(br1);
-        form.appendChild(br2);
+        if(id!=1){
+          var br = document.createElement('br');
+          br.id = "br-"+id;
+          var br1 = document.createElement('br');
+          br1.id = "br1-"+id;
+          var br2= document.createElement('br');
+          br2.id = "br2-"+id;
+          form.appendChild(br);
+          form.appendChild(br1);
+          form.appendChild(br2);
+        }
         form.appendChild(newlabel);
         form.appendChild(div1);
         div2.innerHTML = input.value;
         input.string = id;
         input.addEventListener('input', updateData);
+}
+function removeSlider(id){
+  var form = document.getElementById('form');
+  var br1 = document.getElementById("br1-"+id);
+  var br = document.getElementById("br-"+id);
+  var br2 = document.getElementById("br2-"+id);
+  var label = document.getElementById("label-"+id);
+  var div = document.getElementById("div1-"+id);
+  form.removeChild(br);
+  form.removeChild(br1);
+  form.removeChild(br2);
+  form.removeChild(label);
+  form.removeChild(div);
+}
+function addToggle(){
+  var br = document.createElement('br');
+  br.id = "br-toggle";
+  var br1 = document.createElement('br');
+  br1.id = "br1-toggle";
+  var br2= document.createElement('br');
+  br2.id = "br2-toggle";
+  var newlabel = document.createElement('label');
+  newlabel.id = "label-toggle";
+  newlabel.appendChild(document.createTextNode("Trace pendulum's trajectory: "));
+  newlabel.htmlFor = "checkbox";
+  var input = document.createElement('input');
+  input.type = 'checkbox';
+  input.id = 'switch';
+  input.classList.add('input');
+  input.addEventListener('change', handleCheck);
+  var anotherlabel = document.createElement('label');
+  anotherlabel.classList.add('label');
+  anotherlabel.htmlFor = "switch";
+  form.appendChild(br);
+  form.appendChild(br1);
+  form.appendChild(br2);
+  form.appendChild(newlabel);
+  form.appendChild(input);
+  form.appendChild(anotherlabel);
+}
+
+function enablePendulumsNumber(){
+  var input = document.getElementById("myRange1");
+  var div = document.getElementById("div1-1");
+  var demo = document.getElementById("demo1");
+  input.value = previousPendulumsNumber;
+  demo.innerHTML = input.value;
+  div.style.visibility = "visible";
+}
+
+function disablePendulumsNumber (){
+  var input = document.getElementById("myRange1");
+  var div = document.getElementById("div1-1");
+  var demo = document.getElementById("demo1");
+  previousPendulumsNumber = input.value;
+  input.value = 1;
+  demo.innerHTML = 1;
+  div.style.visibility = "hidden";
+}
+function handleCheck(e){
+  if(e.currentTarget.checked)
+    return disablePendulumsNumber();
+  return enablePendulumsNumber();
 }
