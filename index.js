@@ -60,7 +60,6 @@ function start(typeOfPendulum, pendulumData) {
     const canvasH = 2 * document.body.clientHeight;
     canvas.width = canvasW;
     canvas.height = canvasH ;
-    console.log(canvasH);
 
 
     // Transforming the canvas, so that the y axis goes from bottom to top and centering the origin

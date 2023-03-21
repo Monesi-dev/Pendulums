@@ -74,7 +74,6 @@ class SinglePendulum extends Pendulum {
 
         // Declaring Variables
         const { PI, abs } = Math;
-        console.log(PI);
         let { ctxPlot, dt, currentTime, oldAngle, angle } = this;   // Makes the Code Cleaner 
         const prevTime = currentTime - dt;                  // The Instant in which previous Angles were Plotted
         const color = "red";                                // Color for the Angle
