@@ -111,7 +111,6 @@ class DoublePendulum extends Pendulum {
 
         // Declaring Variables
         const { PI, abs } = Math;
-        console.log(PI);
         let { ctxPlot, dt, currentTime, oldAngle1, oldAngle2, angle1, angle2 } = this;   // Makes the Code Cleaner 
         const prevTime = currentTime - dt;                  // The Instant in which previous Angles were Plotted
         const color1 = "red";                               // Color for the First Angle
