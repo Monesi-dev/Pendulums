@@ -36,13 +36,14 @@ function getDataFromForm() {
     else if (typeOfPendulum == 2) {
         pendulumData = {
             count: Number(document.getElementById("myRange1").value),                  // Number of Pendulums Rendered
+            dt: Number(document.getElementById("myRange8").value),                     // Time Step
             mass1: 10 * Number(document.getElementById("myRange2").value),             // Value of the First Mass
             length1: Number(document.getElementById("myRange3").value),                // Length of the First Rod
             mass2: 10 * Number(document.getElementById("myRange4").value),             // Value of the Second Mass
             length2: Number(document.getElementById("myRange5").value),                // Length of the Second Rod
             angle1: degree2radian * Number(document.getElementById("myRange6").value), // Angle of the First Rod
             angle2: degree2radian * Number(document.getElementById("myRange7").value), // Angle of the Second Rod
-            trajectory: document.getElementById("switch").checked                      // Shows the Trajectory of the Second Mass         
+            trajectory: document.getElementById("switch").checked,                      // Shows the Trajectory of the Second Mass         
         };
     }
 
@@ -90,7 +91,7 @@ function start(typeOfPendulum, pendulumData) {
     const angle2 = pendulumData.angle2;                     // Angle of the Second Rod (Y-axis)
     const drawTrajectory = pendulumData.trajectory;         // Draws Trajectory
     const gravity = 10;                                     // Value of Gravity
-    const dt = 0.004;                                        // Time Step
+    const dt = pendulumData.dt/1000;                             // Time Step
     /*
      * With dt = 0.04 is faster but it is not very accurate, energy is not "constant"
      * With dt = 0.004 is way slower but the energy is more "constant" even for greater initial angles
@@ -197,6 +198,8 @@ function formModifyer(){
         addToggle();
         //number of pendulums
         addSlider("Number of pendulums:  ", '1', '1', "20", "15");
+        //TIme Step
+        addSlider("TIme Step(ms):  ", '8', '0', "500", "40");
          //mass 1
         addSlider("Mass 1 (kg): ", "2", "1", "30", "20");
         //length 1
