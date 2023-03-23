@@ -90,7 +90,11 @@ function start(typeOfPendulum, pendulumData) {
     const angle2 = pendulumData.angle2;                     // Angle of the Second Rod (Y-axis)
     const drawTrajectory = pendulumData.trajectory;         // Draws Trajectory
     const gravity = 10;                                     // Value of Gravity
-    const dt = 0.04;                                        // Time Step
+    const dt = 0.004;                                        // Time Step
+    /*
+     * With dt = 0.04 is faster but it is not very accurate, energy is not "constant"
+     * With dt = 0.004 is way slower but the energy is more "constant" even for greater initial angles
+     */
 
     // Creating Canvas to Plot Data
     const plot = document.createElement('canvas');

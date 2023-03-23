@@ -44,16 +44,17 @@ class DoublePendulum extends Pendulum {
         this.currentTime += dt;
 
         // Computes the Angular Accelerations of the First Rod
-        const chunk1 = -sin(angle1 - angle2) * mass2 * length2 * angleVel2 ** 2;
-        const chunk2 = -(mass1 + mass2) * gravity * sin(angle1);
-        const chunk3 = length1 * (mass1 + mass2) + mass2 * length1 * cos(angle1 - angle2) ** 2;
+        const chunk1 = - gravity * (2 * mass1 + mass2) * sin(angle1) - mass2 * gravity * sin(angle1 - 2 * angle2);
+        const chunk2 = - 2 * sin(angle1 - angle2) * mass2 * (length2 * angleVel2 ** 2 + cos(angle1 - angle2) * length1 * angleVel1 ** 2);
+        const chunk3 = length1 * (2 * mass1 + mass2 - mass2 * cos(2 * angle1 - 2 * angle2))
         this.angleAccel1 = (chunk1 + chunk2) / chunk3;
 
         // Computes the Angular Accelerations of the First Rod
-        const chunk4 = length1 * sin(angle1 - angle2) * (mass1 + mass2) * angleVel1 ** 2;
-        const chunk5 = -gravity * sin(angle2) * (mass1 + mass2);
-        const chunk6 = length2 * (mass1 + mass2) - mass2 * length2 * cos(angle1 - angle2) ** 2;
-        this.angleAccel2 = (chunk4 + chunk5) / chunk6;
+        const chunk4 = 2 * sin(angle1 - angle2);
+        const chunk5 = (mass1 + mass2) * length1 * angleVel1 ** 2 + (mass1 + mass2) * gravity * cos(angle1);
+        const chunk6 = cos(angle1 - angle2) * mass2 * length2 * angleVel2 ** 2;
+        const chunk7 = length2 * (2 * mass1 + mass2 - mass2 * cos(2 * angle1 - 2 * angle2));
+        this.angleAccel2 = chunk4 * (chunk5 + chunk6) / chunk7;
 
         // Computes Velocities and Angles of both Rods
         this.angleVel1 += this.angleAccel1 * dt;
@@ -71,6 +72,22 @@ class DoublePendulum extends Pendulum {
         this.trajectoryPoints.push({x: this.x2, y: this.y2});
         this.finalTrajectoryPoints.push({x: this.x2, y: this.y2});
         if (this.trajectoryPoints.length > this.maxTrajectorySize) this.trajectoryPoints.shift();
+
+        /* Debug - Prints Mechanical Energy
+         * 
+         * const kineticEnergy1 = 1 / 2 * this.mass1 * (this.length1 * this.angleVel1) ** 2;
+         * const vel2_x = this.length1 * this.angleVel1 * cos(this.angle1) + this.length2 * this.angleVel2 * cos(this.angle2);
+         * const vel2_y = this.length1 * this.angleVel1 * sin(this.angle1) + this.length2 * this.angleVel2 * sin(this.angle2);
+         * const kineticEnergy2 = 1 / 2 * this.mass2 * (vel2_x ** 2 + vel2_y ** 2);
+         * const kineticEnergy = kineticEnergy1 + kineticEnergy2;
+         *             
+         * const potentialEnergy1 = this.gravity * this.mass1 * this.y1;
+         * const potentialEnergy2 = this.gravity * this.mass2 * this.y2;
+         * const potentialEnergy = potentialEnergy1 + potentialEnergy2;
+         * 
+         * const mechanicalEnergy = potentialEnergy + kineticEnergy;
+         * console.log(mechanicalEnergy);
+         */
 
     }
 
