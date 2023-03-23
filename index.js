@@ -15,27 +15,34 @@ function getRandomAngle() {
 };
 
 function getDataFromForm() {
+
     // Gets the type of Pendulum that will be simulated (1 => Single) (2 => Double)
-    const typeOfPendulum = document.getElementById("subject").value;    
+    const typeOfPendulum = document.getElementById("subject").value;   
+    const degree2radian = Math.PI / 180; 
     let pendulumData;
 
     // 1 => Single Pendulum
     if (typeOfPendulum == 1) {
         pendulumData = {
-            count: Number(document.getElementById("myRange1").value),            // Number of Pendulums Rendered
-            mass1: 10 * Number(document.getElementById("myRange2").value),      // Value of the First Mass
-            length1: Number(document.getElementById("myRange3").value)          // Length of the First Rod
+            count: Number(document.getElementById("myRange1").value),                  // Number of Pendulums Rendered
+            mass1: 10 * Number(document.getElementById("myRange2").value),             // Value of the First Mass
+            length1: Number(document.getElementById("myRange3").value),                // Length of the First Rod
+            angle1: degree2radian * Number(document.getElementById("myRange6").value), // Angle of the First Rod
+            trajectory: document.getElementById("switch").checked                      // Shows the Trajectory of the Second Mass         
         };   
     }
 
     // 2 => Double Pendulum
     else if (typeOfPendulum == 2) {
         pendulumData = {
-            count: Number(document.getElementById("myRange1").value),             // Number of Pendulums Rendered
-            mass1: 10 * Number(document.getElementById("myRange2").value),       // Value of the First Mass
-            length1: Number(document.getElementById("myRange3").value),          // Length of the First Rod
-            mass2: 10 * Number(document.getElementById("myRange4").value),       // Value of the Second Mass
-            length2: Number(document.getElementById("myRange5").value)           // Length of the Second Rod
+            count: Number(document.getElementById("myRange1").value),                  // Number of Pendulums Rendered
+            mass1: 10 * Number(document.getElementById("myRange2").value),             // Value of the First Mass
+            length1: Number(document.getElementById("myRange3").value),                // Length of the First Rod
+            mass2: 10 * Number(document.getElementById("myRange4").value),             // Value of the Second Mass
+            length2: Number(document.getElementById("myRange5").value),                // Length of the Second Rod
+            angle1: degree2radian * Number(document.getElementById("myRange6").value), // Angle of the First Rod
+            angle2: degree2radian * Number(document.getElementById("myRange7").value), // Angle of the Second Rod
+            trajectory: document.getElementById("switch").checked                      // Shows the Trajectory of the Second Mass         
         };
     }
 
@@ -52,7 +59,7 @@ function start(typeOfPendulum, pendulumData) {
      *
      *  pendulumData is an object containing the information required to simulate the pendulum
      *  SinglePendulum => { count, mass1, length1 }
-     *  DoublePendulum => { count, mass1, length1, mass2, length2 }
+     *  DoublePendulum => { count, mass1, length1, mass2, length2, angle1, angle2, trajectory }
      */  
 
     // Removing Form and Creating Canvas
@@ -67,7 +74,6 @@ function start(typeOfPendulum, pendulumData) {
     canvas.width = canvasW;
     canvas.height = canvasH ;
 
-
     // Transforming the canvas, so that the y axis goes from bottom to top and centering the origin
     const ctx = canvas.getContext('2d');
     ctx.transform(1, 0, 0, -1, canvasW / 2, canvasH / 2);
@@ -80,8 +86,9 @@ function start(typeOfPendulum, pendulumData) {
     const length1 = pendulumData.length1;                   // Length of the First Rod
     const mass2 = pendulumData.mass2;                       // Value of the Second Mass
     const length2 = pendulumData.length2;                   // Length of the Second Rod
-    const angle1 = getRandomAngle();                        // Angle of the First Rod (Y-axis)
-    const angle2 = getRandomAngle();                        // Angle of the Second Rod (Y-axis)
+    const angle1 = pendulumData.angle1;                     // Angle of the First Rod (Y-axis)
+    const angle2 = pendulumData.angle2;                     // Angle of the Second Rod (Y-axis)
+    const drawTrajectory = pendulumData.trajectory;         // Draws Trajectory
     const gravity = 10;                                     // Value of Gravity
     const dt = 0.04;                                        // Time Step
 
@@ -118,6 +125,7 @@ function start(typeOfPendulum, pendulumData) {
                 ctx: ctx,
                 ctxPlot: ctxPlot,
                 color: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
+                trajectory: drawTrajectory,
                 
                 // Tiny changes of the beginning angle of the second pendulum to stimulate CHAOS!
                 angle2: angle2 + i * 0.001,
@@ -143,6 +151,7 @@ function start(typeOfPendulum, pendulumData) {
                 dt: dt,
                 ctx: ctx, 
                 ctxPlot: ctxPlot,
+                trajectory: drawTrajectory,
                 color: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)
 
             })
@@ -153,18 +162,22 @@ function start(typeOfPendulum, pendulumData) {
     }
 
     // Updates the State of the Pendulum and Displays the Pendulum
-    setInterval(() => {
+    let loop = setInterval(() => {
 
       // Clearing Canvas
       ctx.fillStyle = 'black';
       ctx.fillRect(-canvas.width / 2, canvas.height / 2, canvas.width, -canvas.height);
+      let loopEnded = false;
 
       // Calculating the coordinates and drawing the double pendulums
       pendulums.forEach(pendulum => {
         pendulum.calculate();
-        pendulum.draw();
+        let res = pendulum.draw();
+        if (res == 1) loopEnded = true;
       })
       pendulums[0].plot();
+
+      if (loopEnded) clearInterval(loop);
 
     }, 1000 / framesPerSecond); // Computing Period in Milliseconds
 

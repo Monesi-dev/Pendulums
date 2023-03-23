@@ -1,3 +1,5 @@
+// Trajectories of the two Masses are drawn
+
 class Pendulum {
 
     calculate() {
