@@ -1,6 +1,6 @@
 class SinglePendulum extends Pendulum {
 
-    constructor({ fixedPointX, fixedPointY, length, mass, angle, gravity, dt, ctx, ctxPlot, color }) {
+    constructor({ fixedPointX, fixedPointY, length, mass, angle, gravity, dt, ctx, ctxPlot, color, trajectory }) {
 
         // Invoking the Constructor of the Base Class
         super();
@@ -21,6 +21,12 @@ class SinglePendulum extends Pendulum {
         this.ctxPlot = ctxPlot;           // Something needed to plot the Angle
         this.currentTime = 0;             // Something needed to plot the Angle
         this.color = color;               // The Color of the Pendulum
+        this.drawTrajectory = trajectory; // Boolean Value that determines whether the Trajectory of the Mass has to be drawn 
+        this.maxTrajectorySize = 200;     // Max Number of Positions Stored to draw the Trajectory  
+        this.trajectoryPoints = [];       // Array containing Positions of the Mass
+        this.finalTrajectoryPoints = [];  // Array containing every Position of the Mass
+        this.drawFinalTrajectory = false; // Boolean Values that determines whether the Complete Trajectory has to be drawn (ending Animation)
+        this.maxTime = 140;               // Time after which the Animation will be stopped and the Complete Trajectory will be drawn
 
     }
 
@@ -40,6 +46,11 @@ class SinglePendulum extends Pendulum {
         this.endPendulumX = this.fixedPointX + this.length * Math.sin(this.angle);
         this.endPendulumY = this.fixedPointY - this.length * Math.cos(this.angle);
 
+        // Stores Variables used to Draw the Trajectory of the Second Mass
+        this.trajectoryPoints.push({x: this.endPendulumX, y: this.endPendulumY});
+        this.finalTrajectoryPoints.push({x: this.endPendulumX, y: this.endPendulumY});
+        if (this.trajectoryPoints.length > this.maxTrajectorySize) this.trajectoryPoints.shift();
+
     }
 
     // This Function draws the Pendulum on the Canvas
@@ -47,26 +58,54 @@ class SinglePendulum extends Pendulum {
 
         // Sets some Variables
         const { PI } = Math;
+        const { maxTime, fixedPointX, fixedPointY, endPendulumX, endPendulumY, ctx, color, drawTrajectory, trajectoryPoints} = this;
         const circleRadius = 13;           // Radius of the Mass attached to the end of the Pendulum
-        this.ctx.lineWidth = 10;           // Thickness of the Pendulum 
-        this.ctx.strokeStyle = this.color; // Color of the Pendulum 
-        this.ctx.fillStyle = this.color;   // Color of the Mass attached to the end of the Pendulum 
+        const pointRadius = 4;             // Radius of the Points of the Trajectory
+        ctx.lineWidth = 10;                // Thickness of the Pendulum 
+        ctx.strokeStyle = color;           // Color of the Pendulum 
+        ctx.fillStyle = color;             // Color of the Mass attached to the end of the Pendulum 
+
+        // Draws the Final Trajectory 
+        if (this.drawFinalTrajectory) {
+            this.finalTrajectoryPoints.forEach( point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, pointRadius, 0, 2 * PI);
+                ctx.fill();
+            })
+            return 1;   // Ends Animation
+        }
 
         // Draws the Fixed Circle in the Suspension Point
-        this.ctx.beginPath();
-        this.ctx.arc(this.fixedPointX, this.fixedPointY, circleRadius, 0, 2 * PI);
-        this.ctx.fill();
+        ctx.beginPath();
+        ctx.arc(fixedPointX, fixedPointY, circleRadius, 0, 2 * PI);
+        ctx.fill();
 
         // Draws the Line of the Pendulum
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.fixedPointX, this.fixedPointY);
-        this.ctx.lineTo(this.endPendulumX, this.endPendulumY);
-        this.ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(fixedPointX, fixedPointY);
+        ctx.lineTo(endPendulumX, endPendulumY);
+        ctx.stroke();
 
         // Draws the Mass attached to the end of the Pendulum
-        this.ctx.beginPath();
-        this.ctx.arc(this.endPendulumX, this.endPendulumY, circleRadius, 0, 2 * PI);
-        this.ctx.fill();
+        ctx.beginPath();
+        ctx.arc(endPendulumX, endPendulumY, circleRadius, 0, 2 * PI);
+        ctx.fill();
+
+        // Draws the Trajectory of the Second Mass
+        if (drawTrajectory) {
+            trajectoryPoints.forEach( point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, pointRadius, 0, 2 * PI);
+                ctx.fill();
+            })
+
+            // Determines Whether Final Trajectory has to be Drawn
+            if (this.currentTime > maxTime) this.drawFinalTrajectory = true;
+            
+        }
+
+        return 0;
+
     }
 
     // Plots the Angle of the Pendulum

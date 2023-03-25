@@ -1,6 +1,6 @@
 class DoublePendulum extends Pendulum {
 
-    constructor({ mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color, trajectory }) {
+    constructor({ mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color, trajectory, RK4 }) {
 
         // Invoke the Constructor of Base Class
         super()                         // Constructor of Pendulum Class
@@ -28,6 +28,34 @@ class DoublePendulum extends Pendulum {
         this.finalTrajectoryPoints = [];  // Array containing every Position of the Mass
         this.drawFinalTrajectory = false; // Boolean Values that determines whether the Complete Trajectory has to be drawn (ending Animation)
         this.maxTime = 140;               // Time after which the Animation will be stopped and the Complete Trajectory will be drawn
+        this.RK4 = RK4;                   // Determines Whether Euler Method or RK4 Method is used for Numerical Integration
+
+    }
+
+    // This is a Utility Function used when Integrating with the RK4 Method
+    #getAccelerations(angle1, angle2, angleVel1, angleVel2) {
+
+        // Shortcuts to make the Math look cleaner without many "this." or "Math."
+        const { sin, cos } = Math;
+        const { mass1, length1, mass2, length2, gravity } = this;
+
+        // Computes the Angular Accelerations of the First Rod
+        const chunk1 = - gravity * (2 * mass1 + mass2) * sin(angle1) - mass2 * gravity * sin(angle1 - 2 * angle2);
+        const chunk2 = - 2 * sin(angle1 - angle2) * mass2 * (length2 * angleVel2 ** 2 + cos(angle1 - angle2) * length1 * angleVel1 ** 2);
+        const chunk3 = length1 * (2 * mass1 + mass2 - mass2 * cos(2 * angle1 - 2 * angle2))
+        const angleAccel1 = (chunk1 + chunk2) / chunk3;
+
+        // Computes the Angular Accelerations of the First Rod
+        const chunk4 = 2 * sin(angle1 - angle2);
+        const chunk5 = (mass1 + mass2) * length1 * angleVel1 ** 2 + (mass1 + mass2) * gravity * cos(angle1);
+        const chunk6 = cos(angle1 - angle2) * mass2 * length2 * angleVel2 ** 2;
+        const chunk7 = length2 * (2 * mass1 + mass2 - mass2 * cos(2 * angle1 - 2 * angle2));
+        const angleAccel2 = chunk4 * (chunk5 + chunk6) / chunk7;
+
+        return {
+            angleAccel1: angleAccel1, 
+            angleAccel2: angleAccel2
+        };
 
     }
 
@@ -36,31 +64,52 @@ class DoublePendulum extends Pendulum {
 
         // Shortcuts to make the Math look cleaner without many "this." or "Math."
         const { sin, cos } = Math;
-        const { mass1, length1, angle1, angleVel1, mass2, length2, angle2, angleVel2, dt, gravity } = this;
+        const { mass1, length1, angle1, angleVel1, mass2, length2, angle2, angleVel2, RK4, dt, gravity } = this;
 
         // This will be useful when Plotting the Angles against Time
         this.oldAngle1 = this.angle1;
         this.oldAngle2 = this.angle2;
         this.currentTime += dt;
 
-        // Computes the Angular Accelerations of the First Rod
-        const chunk1 = - gravity * (2 * mass1 + mass2) * sin(angle1) - mass2 * gravity * sin(angle1 - 2 * angle2);
-        const chunk2 = - 2 * sin(angle1 - angle2) * mass2 * (length2 * angleVel2 ** 2 + cos(angle1 - angle2) * length1 * angleVel1 ** 2);
-        const chunk3 = length1 * (2 * mass1 + mass2 - mass2 * cos(2 * angle1 - 2 * angle2))
-        this.angleAccel1 = (chunk1 + chunk2) / chunk3;
+        // Numerical Integration
+        if (RK4) {      // Runge-Kutta Method
 
-        // Computes the Angular Accelerations of the First Rod
-        const chunk4 = 2 * sin(angle1 - angle2);
-        const chunk5 = (mass1 + mass2) * length1 * angleVel1 ** 2 + (mass1 + mass2) * gravity * cos(angle1);
-        const chunk6 = cos(angle1 - angle2) * mass2 * length2 * angleVel2 ** 2;
-        const chunk7 = length2 * (2 * mass1 + mass2 - mass2 * cos(2 * angle1 - 2 * angle2));
-        this.angleAccel2 = chunk4 * (chunk5 + chunk6) / chunk7;
+            // First Part
+            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
+            const angleVel1_k1 = angleAccel1 * dt;
+            const angleVel2_k1 = angleAccel2 * dt;
 
-        // Computes Velocities and Angles of both Rods
-        this.angleVel1 += this.angleAccel1 * dt;
-        this.angle1 += this.angleVel1 * dt;
-        this.angleVel2 += this.angleAccel2 * dt;
-        this.angle2 += this.angleVel2 * dt;
+            // Second Part
+            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1 + dt / 2, angle2 + dt / 2, angleVel1 + angleVel1_k1 / 2, angleVel2 + angleVel2_k1 / 2);
+            const angleVel1_k2 = angleAccel1 * dt;
+            const angleVel2_k2 = angleAccel2 * dt;
+
+            // Third Part
+            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1 + dt / 2, angle2 + dt / 2, angleVel1 + angleVel1_k2 / 2, angleVel2 + angleVel2_k2 / 2);
+            const angleVel1_k3 = angleAccel1 * dt;
+            const angleVel2_k3 = angleAccel2 * dt;
+
+            // Fourth Part
+            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1 + dt, angle2 + dt, angleVel1 + angleVel1_k3, angleVel2 + angleVel2_k3);
+            const angleVel1_k4 = angleAccel1 * dt;
+            const angleVel2_k4 = angleAccel2 * dt;
+
+            // Computes Velocities and Angles of both Rods 
+            this.angleVel1 += 1 / 6 * angleVel1_k1 + 1 / 3 * angleVel1_k2 + 1 / 3 * angleVel1_k3 + 1 / 6 * angleVel1_k4;
+            this.angleVel2 += 1 / 6 * angleVel2_k1 + 1 / 3 * angleVel2_k2 + 1 / 3 * angleVel2_k3 + 1 / 6 * angleVel2_k4;
+            this.angle1 += this.angleVel1 * dt;
+            this.angle2 += this.angleVel2 * dt;
+
+        }
+        else {      // Euler Method
+
+            // Computes Accelerations, Velocities and Angles of both Rods
+            const {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
+            this.angleVel1 += angleAccel1 * dt;
+            this.angle1 += this.angleVel1 * dt;
+            this.angleVel2 += angleAccel2 * dt;
+            this.angle2 += this.angleVel2 * dt;
+        }
 
         // Computes X and Y of the two Masses
         this.x1 = length1 * sin(this.angle1);
@@ -73,22 +122,22 @@ class DoublePendulum extends Pendulum {
         this.finalTrajectoryPoints.push({x: this.x2, y: this.y2});
         if (this.trajectoryPoints.length > this.maxTrajectorySize) this.trajectoryPoints.shift();
 
-        /* Debug - Prints Mechanical Energy
-         * 
-         * const kineticEnergy1 = 1 / 2 * this.mass1 * (this.length1 * this.angleVel1) ** 2;
-         * const vel2_x = this.length1 * this.angleVel1 * cos(this.angle1) + this.length2 * this.angleVel2 * cos(this.angle2);
-         * const vel2_y = this.length1 * this.angleVel1 * sin(this.angle1) + this.length2 * this.angleVel2 * sin(this.angle2);
-         * const kineticEnergy2 = 1 / 2 * this.mass2 * (vel2_x ** 2 + vel2_y ** 2);
-         * const kineticEnergy = kineticEnergy1 + kineticEnergy2;
-         *             
-         * const potentialEnergy1 = this.gravity * this.mass1 * this.y1;
-         * const potentialEnergy2 = this.gravity * this.mass2 * this.y2;
-         * const potentialEnergy = potentialEnergy1 + potentialEnergy2;
-         * 
-         * const mechanicalEnergy = potentialEnergy + kineticEnergy;
-         * console.log(mechanicalEnergy);
-         */
-
+        // Debug - Prints Mechanical Energy
+           
+        const kineticEnergy1 = 1 / 2 * this.mass1 * (this.length1 * this.angleVel1) ** 2;
+        const vel2_x = this.length1 * this.angleVel1 * cos(this.angle1) + this.length2 * this.angleVel2 * cos(this.angle2);
+        const vel2_y = this.length1 * this.angleVel1 * sin(this.angle1) + this.length2 * this.angleVel2 * sin(this.angle2);
+        const kineticEnergy2 = 1 / 2 * this.mass2 * (vel2_x ** 2 + vel2_y ** 2);
+        const kineticEnergy = kineticEnergy1 + kineticEnergy2;
+                    
+        const potentialEnergy1 = this.gravity * this.mass1 * this.y1;
+        const potentialEnergy2 = this.gravity * this.mass2 * this.y2;
+        const potentialEnergy = potentialEnergy1 + potentialEnergy2;
+        
+        const mechanicalEnergy = potentialEnergy + kineticEnergy;
+        console.log(mechanicalEnergy);
+       
+          
     }
 
     // This Function draws the Double Pendulum
