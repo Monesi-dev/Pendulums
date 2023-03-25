@@ -135,7 +135,7 @@ class DoublePendulum extends Pendulum {
         const potentialEnergy = potentialEnergy1 + potentialEnergy2;
         
         const mechanicalEnergy = potentialEnergy + kineticEnergy;
-        console.log(mechanicalEnergy);
+        //console.log(mechanicalEnergy);
        
           
     }

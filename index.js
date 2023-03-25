@@ -141,7 +141,7 @@ function start(typeOfPendulum, pendulumData) {
         RK4: RK4,
 
         // Tiny changes of the beginning angle of the second pendulum to stimulate CHAOS!
-        angle2: angle2 + i * 0.002,
+        angle2: angle2 + i * 0.04,
 
       });
 
@@ -159,7 +159,7 @@ function start(typeOfPendulum, pendulumData) {
         fixedPointY: 0,
         length: length1,
         mass: 1,
-        angle: angle1 + i * 0.001,
+        angle: angle1 + i * 0.01,
         gravity: gravity,
         dt: dt,
         ctx: ctx,
@@ -206,18 +206,27 @@ function formModifyer() {
   if (state == 0) {
 
     addToggle();                                                            // Adds Checkboxs
-    addSlider("Time Step(ms):  ", '8', '10', "300", "40");                  // Adds Slider for Time Step
+    addSlider("Time Step(ms):  ", '8', '10', "300", "40");
+    const br1Additional = document.createElement('br');
+    br1Additional.id = "br1-additional";
+    const br2Additional = document.createElement('br');
+    br2Additional.id = "br2-additonal";
+    const br3Additional = document.createElement('br');
+    br3Additional.id = "br3-additonal";                                                 // Adds Slider for Time Step
+    form.appendChild(br1Additional);
+    form.appendChild(br2Additional);
+    form.appendChild(br3Additional);
     addSlider("Number of pendulums:  ", '1', '1', "20", "15");              // Adds Slider to select the Number of Pendulums
     addSlider("Mass 1 (kg): ", "2", "1", "30", "20");                       // Adds Slider to select the Value of the First Mass
     addSlider("Length 1 (cm): ", "3", "1", "500", "100");                   // Adds Slider to select the Length of the First Rod
-    addSlider("Initial angle 1 (degrees): ", "6", "-180", "180", "-60");    // Adds Slider to select the Value of the First Angle
+    addSlider("Initial angle 1 (degrees): ", "6", "-180", "180", "-90");    // Adds Slider to select the Value of the First Angle
     state = pendulum;
 
     if (pendulum == 2) {
 
       addSlider("Mass 2 (kg): ", "4", "1", "30", "20");                     // Adds Slider to select the Value of the Second Mass
       addSlider("Length 2 (cm): ", "5", "1", "500", "100");                 // Adds Slider to select the Length of the Second Rod
-      addSlider("Initial angle 2 (degrees): ", "7", "-180", "180", "-60");  // Adds Slider to select the Value of the Second Angle
+      addSlider("Initial angle 2 (degrees): ", "7", "-180", "180", "-90");  // Adds Slider to select the Value of the Second Angle
 
     }
 
@@ -342,10 +351,10 @@ function addToggle() {
   br1.id = "br1-toggle";
   const br2 = document.createElement('br');
   br2.id = "br2-toggle";
-  const br3 = document.createElement('br');
-  br3.id = "br3-toggle";
-  const br4 = document.createElement('br');
-  br4.id = "br4-toggle";
+  //const br3 = document.createElement('br');
+  //br3.id = "br3-toggle";
+  //const br4 = document.createElement('br');
+  //br4.id = "br4-toggle";
   const br5 = document.createElement('br');
   br5.id = "br5-toggle";
   const br6 = document.createElement('br');
@@ -375,11 +384,11 @@ function addToggle() {
   RK4input.type = 'checkbox';
   RK4input.id = 'RK4switch';
   RK4input.classList.add('input');
-
   const RK4label2 = document.createElement('label');
   RK4label2.classList.add('label');
-  RK4label2.htmlFor = "switch";
+  RK4label2.htmlFor = "RK4switch";
 
+  
   // Append to Form
   form.appendChild(br);
   form.appendChild(br1);
@@ -392,8 +401,7 @@ function addToggle() {
   form.appendChild(RK4label);
   form.appendChild(RK4input);
   form.appendChild(RK4label2);
-  form.appendChild(br3);
-  form.appendChild(br4);
+
 }
 
 function enablePendulumsNumber() {
@@ -418,4 +426,7 @@ function handleCheck(e) {
   if (e.currentTarget.checked)
     return disablePendulumsNumber();
   return enablePendulumsNumber();
+}
+function RK4handleCheck(e) {
+  return false;
 }
