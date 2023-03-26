@@ -38,7 +38,6 @@ select{
     padding: 1%;
     margin-left: 10px;
     width: 30%;
-    border: 0px;
 }
 label{
     margin-bottom: 10%;
@@ -80,57 +79,9 @@ label{
     border-radius: 30px;
     border: 0px;
   }
-
-/*toggle*/
-
-input[type=checkbox]{
-height: 0;
-width: 0;
-visibility: hidden;
-}
-
-.label {
-cursor: pointer;
-text-indent: 0px;
-width: 70px;
-height: 35px;
-background: grey;
-display: block;
-border-radius: 100px;
-position: relative;
-}
-
-.label:after {
-content: '';
-position: absolute;
-top: 2.1px;
-left: 0.4px;
-width: 30px;
-height: 30px;
-background: #fff;
-border-radius: 90px;
-transition: 0.3s;
-}
-
-.input:checked + .label {
-background: orange;
-}
-
-.input:checked + .label:after {
-left: calc(100% - 5px);
-transform: translateX(-100%);
-}
-
-.label:active:after {
-width: 40px;
-}
-#main{
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-}
-#form {
-  margin-left: auto;
-  margin-right: auto;
-}
-
+  a {
+    text-decoration: none;
+  }
+  a:hover {
+      text-decoration: underline;
+  }
