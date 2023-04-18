@@ -33,18 +33,28 @@ class SinglePendulum extends Pendulum {
     // This Function calculates given a tiny variation of time the new angle, velocity and acceleration
     calculate() {
 
+        // Gets some Variable so that code is more readable
+        const { sin, cos, abs, PI } = Math;
+        const { mass, angle, gravity, length, dt, numApprox, fixedPointX, fixedPointY } = this;
+
         // Updates Values used to Plot the Angle
         this.oldAngle = this.angle;
-        this.currentTime += this.dt;
+        this.currentTime += dt;
 
-        // Computes Acceleration, Velocity and Angle
-        this.angularAcceleration = -Math.sin(this.angle) * this.gravity / this.length;
-        this.angularVelocity += this.angularAcceleration * this.dt;
-        this.angle += this.angularVelocity * this.dt;
+        // Computes Acceleration, Velocity and Angular Position
+        this.angularAcceleration = -1 / 2 * (3 * sin(angle) - sin(this.oldAngle)) * gravity / length;
+        this.angularVelocity += this.angularAcceleration * dt;
+        this.angle += this.angularVelocity * dt;
+
+        /* Debug
+         * const potentialEnergy = length * mass * gravity * (1 - cos(angle));
+         * const kineticEnergy = 1 / 2 * mass * (length * this.angularVelocity) ** 2;
+         * console.log("Mechanical Energy: " + (kineticEnergy + potentialEnergy) );
+         */
 
         // Computes X and Y Coordinates of the End of the Pendulum
-        this.endPendulumX = this.fixedPointX + this.length * Math.sin(this.angle);
-        this.endPendulumY = this.fixedPointY - this.length * Math.cos(this.angle);
+        this.endPendulumX = fixedPointX + length * Math.sin(this.angle);
+        this.endPendulumY = fixedPointY - length * Math.cos(this.angle);
 
         // Stores Variables used to Draw the Trajectory of the Second Mass
         this.trajectoryPoints.push({x: this.endPendulumX, y: this.endPendulumY});
