@@ -1,6 +1,6 @@
 class SinglePendulum extends Pendulum {
 
-    constructor({ fixedPointX, fixedPointY, length, mass, angle, gravity, dt, ctx, ctxPlot, color, trajectory }) {
+    constructor({ fixedPointX, fixedPointY, length, mass, angle, gravity, dt, ctx, ctxPlot, color, trajectory, isFirst }) {
 
         // Invoking the Constructor of the Base Class
         super();
@@ -27,6 +27,10 @@ class SinglePendulum extends Pendulum {
         this.finalTrajectoryPoints = [];  // Array containing every Position of the Mass
         this.drawFinalTrajectory = false; // Boolean Values that determines whether the Complete Trajectory has to be drawn (ending Animation)
         this.maxTime = 140;               // Time after which the Animation will be stopped and the Complete Trajectory will be drawn
+        this.isFirst = isFirst                    // If this is the first spawned pendulum then it has to store certain values to plot some data
+        this.csvDownloaded = false                // It's true if csv files have been downloaded, it is useful to stop storing data once the files have been downloaded by the user
+        this.angles = ['theta1,t']                // Array that stores Angles against Time used to create a csv file
+        this.energyCsv = ['Energy,t']             // Array that stores Energy against Time used to create a csv file
 
     }
 
@@ -34,14 +38,23 @@ class SinglePendulum extends Pendulum {
     calculate() {
 
         // Gets some Variable so that code is more readable
-        const { sin, cos, abs, PI } = Math;
-        const { mass, angle, gravity, length, dt, numApprox, fixedPointX, fixedPointY } = this;
+        const { sin, cos, abs, round, PI } = Math;
+        const { isFirst, csvDownloaded, mass, angle, gravity, length, dt, numApprox, fixedPointX, fixedPointY } = this;
 
         // Updates Values used to Plot the Angle
-        this.oldAngle = this.angle;
+
+        // Updates values used to create csv files
         this.currentTime += dt;
+        if (isFirst && csvDownloaded == false) {
+            const potentialEnergy = length * mass * gravity * (1 - cos(angle));
+            const kineticEnergy = 1 / 2 * mass * (length * this.angularVelocity) ** 2;
+            const totalEnergy = potentialEnergy + kineticEnergy
+            this.energyCsv.push(totalEnergy + ',' + round(this.currentTime * 100) / 100)
+            this.angles.push(angle + ',' + round(this.currentTime * 100) / 100)
+        }
 
         // Computes Acceleration, Velocity and Angular Position
+        this.oldAngle = this.angle;
         this.angularAcceleration = -1 / 2 * (3 * sin(angle) - sin(this.oldAngle)) * gravity / length;
         this.angularVelocity += this.angularAcceleration * dt;
         this.angle += this.angularVelocity * dt;
@@ -116,6 +129,104 @@ class SinglePendulum extends Pendulum {
 
         return 0;
 
+    }
+
+    downloadCsvFiles() {
+    
+        this.csvDownloaded = true
+
+        // Creating the csv file with theta and time 
+        var data = this.angles.join('\n')                     // Creating a string containing the csv file 
+        var blob = new Blob([data], { type: 'text/csv' });    // Turning the above string into an actual csv file
+        var url = window.URL.createObjectURL(blob)  // Creating an object for the downloading url
+        var a = document.createElement('a')         // Creating an anchor for the download
+
+        // Starting the dowload automatically
+        a.setAttribute('href', url)                   // Setting the anchor to the url of the csv file
+        a.setAttribute('download', 'angles.csv'); 
+        a.click();                                    // Downloading with a click 
+
+        // Creating the csv file with Energy and time 
+        var data = this.energyCsv.join('\n')                     // Creating a string containing the csv file 
+        var blob = new Blob([data], { type: 'text/csv' });    // Turning the above string into an actual csv file
+        var url = window.URL.createObjectURL(blob)  // Creating an object for the downloading url
+        var a = document.createElement('a')         // Creating an anchor for the download
+
+        // Starting the dowload automatically
+        a.setAttribute('href', url)                   // Setting the anchor to the url of the csv file
+        a.setAttribute('download', 'energy.csv'); 
+        a.click();                                    // Downloading with a click 
+
+        const fakeCanvas = document.createElement('canvas')
+        document.getElementById('main').append(fakeCanvas)
+        for (let i = 0; i < 20; i++) {
+            var br = document.createElement('br')
+            document.getElementById('main').append(br)
+        }
+        // fakeCanvas.style.backgroundColor = "white"
+
+        const timeValues = [];
+        const thetaValues = [];
+        this.angles.forEach(
+            (item, index) => {
+                if (index == 0) return;
+                const values = item.split(',')
+                thetaValues.push(values[0])
+                timeValues.push(values[1])
+            }
+        )
+
+        var myChart = new Chart( 
+            fakeCanvas,
+            {
+          type: "line",
+          data: {
+            labels: timeValues,
+            datasets: [{
+                label: "theta",
+                lineTension: 1,
+              data: thetaValues,
+              borderColor: "red",
+              fill: false
+            }]
+          }
+        });
+
+        // Creating Fake Canvas to plot Energy
+        const energyCanvas = document.createElement('canvas')
+        document.getElementById('main').append(energyCanvas)
+        for (let i = 0; i < 20; i++) {
+            var br = document.createElement('br')
+            document.getElementById('main').append(br)
+        }
+        // fakeCanvas.style.backgroundColor = "white"
+
+        const timeValuesE = [];
+        const energyValues = [];
+        this.energyCsv.forEach(
+            (item, index) => {
+                if (index == 0) return;
+                const values = item.split(',')
+                energyValues.push(values[0])
+                timeValuesE.push(values[1])
+            }
+        )
+
+        var myChart = new Chart( 
+            energyCanvas,
+            {
+          type: "line",
+          data: {
+            labels: timeValuesE,
+            datasets: [{
+                label: "energy",
+                lineTension: 1,
+              data: energyValues,
+              borderColor: "blue",
+              fill: false
+            }]
+          }
+        });
     }
 
     // Plots the Angle of the Pendulum

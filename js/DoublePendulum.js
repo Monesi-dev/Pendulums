@@ -1,6 +1,6 @@
 class DoublePendulum extends Pendulum {
 
-    constructor({ mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color, trajectory, numericalApprox }) {
+    constructor({ mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color, trajectory, numericalApprox, isFirst }) {
 
         // Invoke the Constructor of Base Class
         super()                         // Constructor of Pendulum Class
@@ -29,6 +29,14 @@ class DoublePendulum extends Pendulum {
         this.drawFinalTrajectory = false; // Boolean Values that determines whether the Complete Trajectory has to be drawn (ending Animation)
         this.maxTime = 140;               // Time after which the Animation will be stopped and the Complete Trajectory will be drawn
         this.numericalApprox = numericalApprox;   // Determines the Method used for Numerical Approximation
+        this.isFirst = isFirst                    // If this is the first spawned pendulum then it has to store certain values to plot some data
+        this.csvDownloaded = false                // It's true if csv files have been downloaded, it is useful to stop storing data once the files have been downloaded by the user
+        this.angles = ['theta1,theta2,t']         // Array that stores Angles against Time used to create a csv file
+        this.energyCsv = ['Energy,t']             // Array that stores Energy against Time used to create a csv file
+        this.x1 = length1 * Math.sin(this.angle1);
+        this.y1 = - length1 * Math.cos(this.angle1);
+        this.x2 = this.x1 + length2 * Math.sin(this.angle2);
+        this.y2 = this.y1 - length2 * Math.cos(this.angle2);
 
     }
 
@@ -63,14 +71,33 @@ class DoublePendulum extends Pendulum {
     calculate() {
 
         // Shortcuts to make the Math look cleaner without many "this." or "Math."
-        const { sin, cos } = Math;
-        const { mass1, length1, angle1, angleVel1, mass2, length2, angle2, angleVel2, numericalApprox, dt, gravity } = this;
+        const { sin, cos, round } = Math;
+        const { isFirst, csvDownloaded, mass1, length1, angle1, angleVel1, mass2, length2, angle2, angleVel2, numericalApprox, dt, gravity } = this;
 
-        // This will be useful when Plotting the Angles against Time
-        this.oldAngle1 = this.angle1;
-        this.oldAngle2 = this.angle2;
+        // Storing Data that will be used to create the csv files 
+        if (isFirst && csvDownloaded === false) {
+
+            // Storing Angle values with respect to time 
+            this.angles.push(this.angle1 + ',' + this.angle2 + ',' + round(100 * this.currentTime) / 100)
+
+            // Computing and then storing energy with respect to time
+            const kineticEnergy1 = 1 / 2 * this.mass1 * (this.length1 * this.angleVel1) ** 2;
+            const vel2_x = this.length1 * this.angleVel1 * cos(this.angle1) + this.length2 * this.angleVel2 * cos(this.angle2);
+            const vel2_y = this.length1 * this.angleVel1 * sin(this.angle1) + this.length2 * this.angleVel2 * sin(this.angle2);
+            const kineticEnergy2 = 1 / 2 * this.mass2 * (vel2_x ** 2 + vel2_y ** 2);
+            const kineticEnergy = kineticEnergy1 + kineticEnergy2;
+            const potentialEnergy1 = this.gravity * this.mass1 * this.y1;
+            const potentialEnergy2 = this.gravity * this.mass2 * this.y2;
+            const potentialEnergy = potentialEnergy1 + potentialEnergy2;
+            const mechanicalEnergy = potentialEnergy + kineticEnergy;
+            this.energyCsv.push(mechanicalEnergy + ',' + round(100 * this.currentTime) / 100)
+        }
+
+        // Updates angles for plotting
+        // this.oldAngle1 = this.angle1;
+        // this.oldAngle2 = this.angle2;
         this.currentTime += dt;
-
+        
         // Numerical Approximation for ODE
         if (this.numericalApprox == 'RK4') {      // Runge-Kutta 4 Method
 
@@ -165,6 +192,8 @@ class DoublePendulum extends Pendulum {
         this.finalTrajectoryPoints.push({x: this.x2, y: this.y2});
         if (this.trajectoryPoints.length > this.maxTrajectorySize) this.trajectoryPoints.shift();
 
+
+
         /* Debug - Prints Mechanical Energy
            
          * const kineticEnergy1 = 1 / 2 * this.mass1 * (this.length1 * this.angleVel1) ** 2;
@@ -181,7 +210,6 @@ class DoublePendulum extends Pendulum {
          * console.log(mechanicalEnergy);
          */
        
-          
     }
 
     // This Function draws the Double Pendulum
@@ -300,6 +328,162 @@ class DoublePendulum extends Pendulum {
             ctxPlot.lineTo(timeMultiplier * currentTime, angleMultiplier * angle2 + angleOffset);
             ctxPlot.stroke();
         }
+
+    }
+
+    /*
+     * When this function is called a set of csv files will be automatically downloaded
+     * More accurately, the downloaded csv files are: 
+     * 1) the plot of the two angles against time 
+     * 2) the plot of the total energy against time
+     * 3) the space of phases
+     */
+    downloadCsvFiles() {
+
+        // Creating the csv file with theta1, theta2 and time 
+        var data = this.angles.join('\n')                     // Creating a string containing the csv file 
+        var blob = new Blob([data], { type: 'text/csv' });    // Turning the above string into an actual csv file
+        var url = window.URL.createObjectURL(blob)  // Creating an object for the downloading url
+        var a = document.createElement('a')         // Creating an anchor for the download
+
+        // Starting the dowload automatically
+        a.setAttribute('href', url)                   // Setting the anchor to the url of the csv file
+        a.setAttribute('download', 'angles.csv'); 
+        a.click();                                    // Downloading with a click 
+
+        // Creating the csv file with Energy and time 
+        var data = this.energyCsv.join('\n')                     // Creating a string containing the csv file 
+        var blob = new Blob([data], { type: 'text/csv' });    // Turning the above string into an actual csv file
+        var url = window.URL.createObjectURL(blob)  // Creating an object for the downloading url
+        var a = document.createElement('a')         // Creating an anchor for the download
+
+        // Starting the dowload automatically
+        a.setAttribute('href', url)                   // Setting the anchor to the url of the csv file
+        a.setAttribute('download', 'energy.csv'); 
+        a.click();                                    // Downloading with a click 
+
+
+        // Creating Fake Canvas for Angles
+        const fakeCanvas = document.createElement('canvas')
+        document.getElementById('main').append(fakeCanvas)
+        for (let i = 0; i < 20; i++) {
+            var br = document.createElement('br')
+            document.getElementById('main').append(br)
+        }
+        // fakeCanvas.style.backgroundColor = "white"
+
+        const timeValues = [];
+        const theta1Values = [];
+        const theta2Values = [];
+        this.angles.forEach(
+            (item, index) => {
+                if (index == 0) return;
+                const values = item.split(',')
+                theta1Values.push(values[0])
+                theta2Values.push(values[1])
+                timeValues.push(values[2])
+            }
+        )
+
+        var myChart = new Chart( 
+            fakeCanvas,
+            {
+          type: "line",
+          data: {
+            labels: timeValues,
+            datasets: [{
+                label: "theta1",
+                lineTension: 1,
+              data: theta1Values,
+              borderColor: "red",
+              fill: false
+            },{
+              label: "theta2",
+              data: theta2Values,
+              borderColor: "green",
+              fill: false
+            }]
+          }
+            /*
+        ,
+          options: {
+            animation: {
+              onComplete: function () {
+                a.setAttribute('href', myChart.toBase64Image())     // Setting the anchor to the url of the csv file
+                a.setAttribute('download', 'img.jpeg'); 
+                a.click();                                          // Downloading with a click 
+              }
+            }
+          }
+          */
+        });
+
+        // Creating Fake Canvas to plot Energy
+        const energyCanvas = document.createElement('canvas')
+        document.getElementById('main').append(energyCanvas)
+        for (let i = 0; i < 20; i++) {
+            var br = document.createElement('br')
+            document.getElementById('main').append(br)
+        }
+        // fakeCanvas.style.backgroundColor = "white"
+
+        const timeValuesE = [];
+        const energyValues = [];
+        this.energyCsv.forEach(
+            (item, index) => {
+                if (index == 0) return;
+                const values = item.split(',')
+                energyValues.push(values[0])
+                timeValuesE.push(values[1])
+            }
+        )
+
+        var myChart = new Chart( 
+            energyCanvas,
+            {
+          type: "line",
+          data: {
+            labels: timeValuesE,
+            datasets: [{
+                label: "energy",
+                lineTension: 1,
+              data: energyValues,
+              borderColor: "blue",
+              fill: false
+            }]
+          }
+        });
+        /*
+        var myChart = new Chart(
+            fakeCanvas,
+            {
+            type: 'bar',
+            data: {
+                labels: ['One', 'Two', 'Three', 'Four', 'Five', 'Six'],
+                datasets: [
+                    { 
+                    label: 'My data',
+                    data: [12, 19, 3, 5, 2, 3],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(0,0,0,1)',
+                    borderWidth: 1,
+                    },
+                ],
+                },
+            options: {
+            animation: {
+              onComplete: function () {
+                a.setAttribute('href', myChart.toBase64Image())     // Setting the anchor to the url of the csv file
+                a.setAttribute('download', 'img.png'); 
+                a.click();                                          // Downloading with a click 
+      },
+    },
+  },
+            }
+        );
+        */
+
+
 
     }
 

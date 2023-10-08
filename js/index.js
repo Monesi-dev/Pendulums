@@ -7,6 +7,12 @@
 
 
 var previousPendulumsNumber = 15;
+// This is useful to determine when to download the csv files 
+// When the simulation has lasted for at least 20s the files will be downloaded
+var simulationStartTime     // This will be set when the simulation starts
+const maxTime = 60000;      // Milliseconds
+var downloaded = false;     // This ensures that the files are only downloaded once
+
 // Utility Function
 function getRandomNumber(min, max) {
   return Math.random() * (max - min) + min;
@@ -72,7 +78,8 @@ function start(typeOfPendulum, pendulumData) {
   document.getElementById("main").removeChild(document.getElementById("form"));
   const canvas = document.createElement('canvas');
   canvas.id = "canvas";
-  document.body.appendChild(canvas);
+  document.getElementById('main').append(canvas)
+  // document.body.appendChild(canvas);
 
   // Setting the width and height of the canvas, so that it fills the screen
   const canvasW = document.body.clientWidth;
@@ -107,7 +114,7 @@ function start(typeOfPendulum, pendulumData) {
   // Creating Canvas to Plot Data
   const plot = document.createElement('canvas');
   plot.id = "plot";
-  document.body.appendChild(plot);
+  // document.body.appendChild(plot);
 
   // Setting the width and height of the Plot
   const plotW = canvasW; //document.body.clientWidth;
@@ -139,9 +146,11 @@ function start(typeOfPendulum, pendulumData) {
         color: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
         trajectory: drawTrajectory,
         numericalApprox: numericalApprox,
+        isFirst: i == 0,                    // It's true if this is the first pendulum to be spawned
 
         // Tiny changes of the beginning angle of the second pendulum to stimulate CHAOS!
         angle2: angle2 + i * 0.002,
+
 
       });
 
@@ -165,6 +174,7 @@ function start(typeOfPendulum, pendulumData) {
         ctx: ctx,
         ctxPlot: ctxPlot,
         trajectory: drawTrajectory,
+        isFirst: i == 0,                    // It's true if this is the first pendulum to be spawned
         color: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)
 
       })
@@ -179,6 +189,13 @@ function start(typeOfPendulum, pendulumData) {
 
     // This is used to keep track of the time elapsed since the function was invoked
     let start = Date.now();
+
+    // Updates the counter of iterations and when this counter has reached a set 
+    // amount then the download of the csv files will begin automatically
+    if (downloaded == false && start - simulationStartTime > maxTime) {
+      pendulums[0].downloadCsvFiles()
+      downloaded = true
+    }
     
     // Clearing Canvas
     ctx.fillStyle = 'black';
@@ -191,7 +208,7 @@ function start(typeOfPendulum, pendulumData) {
       let res = pendulum.draw();
       if (res == 1) loopEnded = true;
     })
-    pendulums[0].plot();
+    // pendulums[0].plot();
     
     // The next animation will begin when a sufficient amount of time has elapsed
     while (Date.now() - start < dt);
@@ -199,6 +216,7 @@ function start(typeOfPendulum, pendulumData) {
 
   }
   
+  simulationStartTime = Date.now()  
   window.requestAnimationFrame(step);
 
 }
