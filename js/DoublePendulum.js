@@ -1,3 +1,14 @@
+function screenshotPage() {
+    var wrapper = document.getElementById('canvas');
+    html2canvas(wrapper, {
+        onrendered: function(canvas) {
+            canvas.toBlob(function(blob) {
+                saveAs(blob, 'Traiettoria.png');
+            });
+        }
+    });
+}
+
 class DoublePendulum extends Pendulum {
 
     constructor({ mass1, length1, angle1, mass2, length2, angle2, gravity, dt, ctx, ctxPlot, color, trajectory, numericalApprox, isFirst }) {
@@ -212,6 +223,8 @@ class DoublePendulum extends Pendulum {
        
     }
 
+    
+
     // This Function draws the Double Pendulum
     draw() {
 
@@ -272,7 +285,13 @@ class DoublePendulum extends Pendulum {
             })
 
             // Determines Whether Final Trajectory has to be Drawn
-            if (this.currentTime > maxTime) this.drawFinalTrajectory = true;
+            if (this.currentTime > maxTime) {
+                this.drawFinalTrajectory = true;
+                // Downloads an image of the trajectory. Without 
+                //the wait parameter the image would be downloaded while the
+                //pendulum is still visible
+                const wait = setTimeout(screenshotPage, 5000);
+            }
             
         }
 

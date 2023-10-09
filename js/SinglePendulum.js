@@ -1,3 +1,15 @@
+function screenshotPage() {
+    var wrapper = document.getElementById('canvas');
+    html2canvas(wrapper, {
+        onrendered: function(canvas) {
+            canvas.toBlob(function(blob) {
+                saveAs(blob, 'Traiettoria.png');
+            });
+        }
+    });
+}
+
+
 class SinglePendulum extends Pendulum {
 
     constructor({ fixedPointX, fixedPointY, length, mass, angle, gravity, dt, ctx, ctxPlot, color, trajectory, isFirst }) {
@@ -123,7 +135,13 @@ class SinglePendulum extends Pendulum {
             })
 
             // Determines Whether Final Trajectory has to be Drawn
-            if (this.currentTime > maxTime) this.drawFinalTrajectory = true;
+            if (this.currentTime > maxTime) {
+                this.drawFinalTrajectory = true;
+                // Downloads an image of the trajectory. Without 
+                //the wait parameter the image would be downloaded while the
+                //pendulum is still visible
+                const attesa = setTimeout(screenshotPage, 5000);
+            }
             
         }
 
