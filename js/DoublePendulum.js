@@ -296,7 +296,31 @@ class DoublePendulum extends Pendulum {
             })
 
             // Determines Whether Final Trajectory has to be Drawn
-            if (this.currentTime > maxTime) this.drawFinalTrajectory = true;
+            if (this.currentTime > maxTime) {
+
+                // When this property is set to true the next time the draw method is invoked
+                // it will return a -1 that will be received by the Animation Loop that 
+                // will stop the animation
+                this.drawFinalTrajectory = true;
+
+                // Declaring a Function to download an image of the trajectory
+                function screenshotPage() {
+                    var wrapper = document.getElementById('canvas');
+                    html2canvas(wrapper, {
+                        onrendered: function(canvas) {
+                            canvas.toBlob(function(blob) {
+                                saveAs(blob, 'Traiettoria.png');
+                            });
+                        }
+                    });
+                }
+
+                // Downloads an image of the trajectory. Without 
+                // the wait parameter the image would be downloaded while the
+                // pendulum is still visible
+                const wait = setTimeout(screenshotPage, 5000);
+
+            }
             
         }
 
