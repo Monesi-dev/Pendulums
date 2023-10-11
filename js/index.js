@@ -240,7 +240,7 @@ function formModifyer() {
   if (state == 0) {
 
     addToggle();                                                            // Adds Checkboxs
-    addSlider("Time Step(ms):  ", '8', '10', "300", "40");                  // Adds Slider for Time Step
+    addSlider("Time Step(ms):  ", '8', '50', "200", "80");                  // Adds Slider for Time Step
     addSlider("Number of pendulums:  ", '1', '1', "20", "15");              // Adds Slider to select the Number of Pendulums
     addSlider("Mass 1 (kg): ", "2", "1", "30", "20");                       // Adds Slider to select the Value of the First Mass
     addSlider("Length 1 (cm): ", "3", "40", "120", "100");                  // Adds Slider to select the Length of the First Rod
@@ -261,7 +261,7 @@ function formModifyer() {
   else if (state == 1) {
 
     removeButton();
-    addSlider("Mass 2 (kg):", "4", "1", "30", "20");                      // Adds Slider to select the Value of the Second Mass
+    addSlider("Mass 2 (kg): ", "4", "1", "30", "20");                      // Adds Slider to select the Value of the Second Mass
     addSlider("Length 2 (cm): ", "5", "40", "120", "100");                // Adds Slider to select the Length of the Second Rod
     addSlider("Initial angle 2 (degrees): ", "7", "-180", "180", "-60");  // Adds Slider to select the Value of the Second Angle
     addSlider("RK: ", "9", "1", "4", "1");                                // Adds Slider to select the Method for Numerical Approximation

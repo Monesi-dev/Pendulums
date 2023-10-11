@@ -43,6 +43,14 @@ label{
     margin-bottom: 10%;
     margin-top: 10%;
 }
+#myRange8 {
+  margin-bottom: 2rem;
+}
+
+#subject {
+  border: 0px;
+}
+
 .slider {
     margin-top:4%;
     -webkit-appearance: none;
