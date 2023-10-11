@@ -1,13 +1,4 @@
-function screenshotPage() {
-    var wrapper = document.getElementById('canvas');
-    html2canvas(wrapper, {
-        onrendered: function(canvas) {
-            canvas.toBlob(function(blob) {
-                saveAs(blob, 'Traiettoria.png');
-            });
-        }
-    });
-}
+// Make a switch statement
 
 class DoublePendulum extends Pendulum {
 
@@ -44,6 +35,8 @@ class DoublePendulum extends Pendulum {
         this.csvDownloaded = false                // It's true if csv files have been downloaded, it is useful to stop storing data once the files have been downloaded by the user
         this.angles = ['theta1,theta2,t']         // Array that stores Angles against Time used to create a csv file
         this.energyCsv = ['Energy,t']             // Array that stores Energy against Time used to create a csv file
+        this.dotq1q1 = ['dotq1,q1']                  // Array that stores the values of q1 and its derivative with respect to time, used to plot the state space 
+        this.dotq2q2 = ['dotq2,q2']                  // Array that stores the values of q2 and its derivative with respect to time, used to plot the state space 
         this.x1 = length1 * Math.sin(this.angle1);
         this.y1 = - length1 * Math.cos(this.angle1);
         this.x2 = this.x1 + length2 * Math.sin(this.angle2);
@@ -91,6 +84,10 @@ class DoublePendulum extends Pendulum {
             // Storing Angle values with respect to time 
             this.angles.push(this.angle1 + ',' + this.angle2 + ',' + round(100 * this.currentTime) / 100)
 
+            // Storing q1, dotq1, q2 and dotq2 values 
+            this.dotq1q1.push(this.angleVel1 + ',' + this.angle1)
+            this.dotq2q2.push(this.angleVel2 + ',' + this.angle2)
+
             // Computing and then storing energy with respect to time
             const kineticEnergy1 = 1 / 2 * this.mass1 * (this.length1 * this.angleVel1) ** 2;
             const vel2_x = this.length1 * this.angleVel1 * cos(this.angle1) + this.length2 * this.angleVel2 * cos(this.angle2);
@@ -103,93 +100,109 @@ class DoublePendulum extends Pendulum {
             const mechanicalEnergy = potentialEnergy + kineticEnergy;
             this.energyCsv.push(mechanicalEnergy + ',' + round(100 * this.currentTime) / 100)
         }
+        this.currentTime += dt;
 
         // Updates angles for plotting
         // this.oldAngle1 = this.angle1;
         // this.oldAngle2 = this.angle2;
-        this.currentTime += dt;
         
         // Numerical Approximation for ODE
-        if (this.numericalApprox == 'RK4') {      // Runge-Kutta 4 Method
+        switch(this.numericalApprox) {
 
-            // First Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
-            const angleVel1_k1 = angleAccel1 * dt;
-            const angleVel2_k1 = angleAccel2 * dt;
+            // Runge-Kutta 4 Method
+            case 'RK4':
 
-            // Second Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k1 / 2, angleVel2 + angleVel2_k1 / 2);
-            const angleVel1_k2 = angleAccel1 * dt;
-            const angleVel2_k2 = angleAccel2 * dt;
+                // First Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
+                var angleVel1_k1 = angleAccel1 * dt;
+                var angleVel2_k1 = angleAccel2 * dt;
 
-            // Third Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k2 / 2, angleVel2 + angleVel2_k2 / 2);
-            const angleVel1_k3 = angleAccel1 * dt;
-            const angleVel2_k3 = angleAccel2 * dt;
+                // Second Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k1 / 2, angleVel2 + angleVel2_k1 / 2);
+                var angleVel1_k2 = angleAccel1 * dt;
+                var angleVel2_k2 = angleAccel2 * dt;
 
-            // Fourth Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k3, angleVel2 + angleVel2_k3);
-            const angleVel1_k4 = angleAccel1 * dt;
-            const angleVel2_k4 = angleAccel2 * dt;
+                // Third Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k2 / 2, angleVel2 + angleVel2_k2 / 2);
+                var angleVel1_k3 = angleAccel1 * dt;
+                var angleVel2_k3 = angleAccel2 * dt;
 
-            // Computes Velocities and Angles of both Rods 
-            this.angleVel1 += 1 / 6 * angleVel1_k1 + 1 / 3 * angleVel1_k2 + 1 / 3 * angleVel1_k3 + 1 / 6 * angleVel1_k4;
-            this.angleVel2 += 1 / 6 * angleVel2_k1 + 1 / 3 * angleVel2_k2 + 1 / 3 * angleVel2_k3 + 1 / 6 * angleVel2_k4;
-            this.angle1 += this.angleVel1 * dt;
-            this.angle2 += this.angleVel2 * dt;
+                // Fourth Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k3, angleVel2 + angleVel2_k3);
+                var angleVel1_k4 = angleAccel1 * dt;
+                var angleVel2_k4 = angleAccel2 * dt;
 
-        }
-        else if (numericalApprox == 'RK3') {        // Runge Kutta 3 O(h^3)
+                // Computes Velocities and Angles of both Rods 
+                this.angleVel1 += 1 / 6 * angleVel1_k1 + 1 / 3 * angleVel1_k2 + 1 / 3 * angleVel1_k3 + 1 / 6 * angleVel1_k4;
+                this.angleVel2 += 1 / 6 * angleVel2_k1 + 1 / 3 * angleVel2_k2 + 1 / 3 * angleVel2_k3 + 1 / 6 * angleVel2_k4;
+                this.angle1 += this.angleVel1 * dt;
+                this.angle2 += this.angleVel2 * dt;
 
-            // First Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
-            const angleVel1_k1 = angleAccel1 * dt;
-            const angleVel2_k1 = angleAccel2 * dt;
+                break;      // End of Case
 
-            // Second Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k1 / 2, angleVel2 + angleVel2_k1 / 2);
-            const angleVel1_k2 = angleAccel1 * dt;
-            const angleVel2_k2 = angleAccel2 * dt;
+            // Runge Kutta 3
+            case 'RK3': 
 
-            // Third Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + 2 * angleVel1_k2 - angleVel1_k1, angleVel2 + 2 * angleVel2_k2 - angleVel2_k1);
-            const angleVel1_k3 = angleAccel1 * dt;
-            const angleVel2_k3 = angleAccel2 * dt;
+                // First Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
+                var angleVel1_k1 = angleAccel1 * dt;
+                var angleVel2_k1 = angleAccel2 * dt;
 
-            // Computes Velocities and Angles of both Rods 
-            this.angleVel1 += 1 / 6 * angleVel1_k1 + 2 / 3 * angleVel1_k2 + 1 / 6 * angleVel1_k3;
-            this.angleVel2 += 1 / 6 * angleVel2_k1 + 2 / 3 * angleVel2_k2 + 1 / 6 * angleVel2_k3;
-            this.angle1 += this.angleVel1 * dt;
-            this.angle2 += this.angleVel2 * dt;
+                // Second Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k1 / 2, angleVel2 + angleVel2_k1 / 2);
+                var angleVel1_k2 = angleAccel1 * dt;
+                var angleVel2_k2 = angleAccel2 * dt;
 
-        }
-        else if (numericalApprox == 'RK2') {        // Runge Kutta 2 O(h^2)
+                // Third Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + 2 * angleVel1_k2 - angleVel1_k1, angleVel2 + 2 * angleVel2_k2 - angleVel2_k1);
+                var angleVel1_k3 = angleAccel1 * dt;
+                var angleVel2_k3 = angleAccel2 * dt;
 
-            // First Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
-            const angleVel1_k1 = angleAccel1 * dt;
-            const angleVel2_k1 = angleAccel2 * dt;
+                // Computes Velocities and Angles of both Rods 
+                this.angleVel1 += 1 / 6 * angleVel1_k1 + 2 / 3 * angleVel1_k2 + 1 / 6 * angleVel1_k3;
+                this.angleVel2 += 1 / 6 * angleVel2_k1 + 2 / 3 * angleVel2_k2 + 1 / 6 * angleVel2_k3;
+                this.angle1 += this.angleVel1 * dt;
+                this.angle2 += this.angleVel2 * dt;
 
-            // Second Part
-            var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k1, angleVel2 + angleVel2_k1);
-            const angleVel1_k2 = angleAccel1 * dt;
-            const angleVel2_k2 = angleAccel2 * dt;
+                break;      // End of Case
 
-            // Computes Velocities and Angles of both Rods 
-            this.angleVel1 += 1 / 2 * angleVel1_k1 + 1 / 2 * angleVel1_k2;
-            this.angleVel2 += 1 / 2 * angleVel2_k1 + 1 / 2 * angleVel2_k2;
-            this.angle1 += this.angleVel1 * dt;
-            this.angle2 += this.angleVel2 * dt;
+            // Runge Kutta 2 O(h^2)
+            case 'RK2':
 
-        }
-        else if (numericalApprox == 'RK1') {        // Euler Method
+                // First Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
+                var angleVel1_k1 = angleAccel1 * dt;
+                var angleVel2_k1 = angleAccel2 * dt;
 
-            // Computes Accelerations, Velocities and Angles of both Rods
-            const {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
-            this.angleVel1 += angleAccel1 * dt;
-            this.angleVel2 += angleAccel2 * dt;
-            this.angle1 += this.angleVel1 * dt;
-            this.angle2 += this.angleVel2 * dt;
+                // Second Part
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1 + angleVel1_k1, angleVel2 + angleVel2_k1);
+                var angleVel1_k2 = angleAccel1 * dt;
+                var angleVel2_k2 = angleAccel2 * dt;
+
+                // Computes Velocities and Angles of both Rods 
+                this.angleVel1 += 1 / 2 * angleVel1_k1 + 1 / 2 * angleVel1_k2;
+                this.angleVel2 += 1 / 2 * angleVel2_k1 + 1 / 2 * angleVel2_k2;
+                this.angle1 += this.angleVel1 * dt;
+                this.angle2 += this.angleVel2 * dt;
+
+                break;      // End of Case
+
+            // Euler Method
+            case 'RK1':    
+
+                // Computes Accelerations, Velocities and Angles of both Rods
+                var {angleAccel1, angleAccel2} = this.#getAccelerations(angle1, angle2, angleVel1, angleVel2);
+                this.angleVel1 += angleAccel1 * dt;
+                this.angleVel2 += angleAccel2 * dt;
+                this.angle1 += this.angleVel1 * dt;
+                this.angle2 += this.angleVel2 * dt;
+
+                break;      // End of Case 
+
+            // This should never run as a DP should always be instantiated with a valid integration Method
+            default:
+
+                console.log('Integration Method Not Found!')
         }
 
         // Computes X and Y of the two Masses
@@ -222,8 +235,6 @@ class DoublePendulum extends Pendulum {
          */
        
     }
-
-    
 
     // This Function draws the Double Pendulum
     draw() {
@@ -286,11 +297,29 @@ class DoublePendulum extends Pendulum {
 
             // Determines Whether Final Trajectory has to be Drawn
             if (this.currentTime > maxTime) {
+
+                // When this property is set to true the next time the draw method is invoked
+                // it will return a -1 that will be received by the Animation Loop that 
+                // will stop the animation
                 this.drawFinalTrajectory = true;
+
+                // Declaring a Function to download an image of the trajectory
+                function screenshotPage() {
+                    var wrapper = document.getElementById('canvas');
+                    html2canvas(wrapper, {
+                        onrendered: function(canvas) {
+                            canvas.toBlob(function(blob) {
+                                saveAs(blob, 'Traiettoria.png');
+                            });
+                        }
+                    });
+                }
+
                 // Downloads an image of the trajectory. Without 
-                //the wait parameter the image would be downloaded while the
-                //pendulum is still visible
+                // the wait parameter the image would be downloaded while the
+                // pendulum is still visible
                 const wait = setTimeout(screenshotPage, 5000);
+
             }
             
         }
@@ -359,6 +388,14 @@ class DoublePendulum extends Pendulum {
      */
     downloadCsvFiles() {
 
+        /*
+         *      Downloading csv file containing:
+         *      Theta1, Theta2, time 
+         *      Energy, time 
+         *      dotq1, q1 
+         *      dotq2, q2
+         */ 
+
         // Creating the csv file with theta1, theta2 and time 
         var data = this.angles.join('\n')                     // Creating a string containing the csv file 
         var blob = new Blob([data], { type: 'text/csv' });    // Turning the above string into an actual csv file
@@ -381,6 +418,34 @@ class DoublePendulum extends Pendulum {
         a.setAttribute('download', 'energy.csv'); 
         a.click();                                    // Downloading with a click 
 
+        // Creating the csv file with q1, dotq1
+        var data = this.dotq1q1.join('\n')                     // Creating a string containing the csv file 
+        var blob = new Blob([data], { type: 'text/csv' });    // Turning the above string into an actual csv file
+        var url = window.URL.createObjectURL(blob)  // Creating an object for the downloading url
+        var a = document.createElement('a')         // Creating an anchor for the download
+
+        // Starting the dowload automatically
+        a.setAttribute('href', url)                   // Setting the anchor to the url of the csv file
+        a.setAttribute('download', 'state_space_1.csv'); 
+        a.click();                                    // Downloading with a click 
+
+        // Creating the csv file with q2, dotq2
+        var data = this.dotq2q2.join('\n')                     // Creating a string containing the csv file 
+        var blob = new Blob([data], { type: 'text/csv' });    // Turning the above string into an actual csv file
+        var url = window.URL.createObjectURL(blob)  // Creating an object for the downloading url
+        var a = document.createElement('a')         // Creating an anchor for the download
+
+        // Starting the dowload automatically
+        a.setAttribute('href', url)                   // Setting the anchor to the url of the csv file
+        a.setAttribute('download', 'state_space_2.csv'); 
+        a.click();                                    // Downloading with a click 
+
+
+        /*
+         *
+         * Plotting Angles1, Angle2, Time 
+         *
+         */
 
         // Creating Fake Canvas for Angles
         const fakeCanvas = document.createElement('canvas')
@@ -423,19 +488,14 @@ class DoublePendulum extends Pendulum {
               fill: false
             }]
           }
-            /*
-        ,
-          options: {
-            animation: {
-              onComplete: function () {
-                a.setAttribute('href', myChart.toBase64Image())     // Setting the anchor to the url of the csv file
-                a.setAttribute('download', 'img.jpeg'); 
-                a.click();                                          // Downloading with a click 
-              }
-            }
-          }
-          */
         });
+
+
+        /*
+         *
+         * Plotting Energy, Time 
+         *
+         */
 
         // Creating Fake Canvas to plot Energy
         const energyCanvas = document.createElement('canvas')
@@ -472,40 +532,121 @@ class DoublePendulum extends Pendulum {
             }]
           }
         });
-        /*
-        var myChart = new Chart(
-            fakeCanvas,
-            {
-            type: 'bar',
-            data: {
-                labels: ['One', 'Two', 'Three', 'Four', 'Five', 'Six'],
-                datasets: [
-                    { 
-                    label: 'My data',
-                    data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(0,0,0,1)',
-                    borderWidth: 1,
-                    },
-                ],
-                },
-            options: {
-            animation: {
-              onComplete: function () {
-                a.setAttribute('href', myChart.toBase64Image())     // Setting the anchor to the url of the csv file
-                a.setAttribute('download', 'img.png'); 
-                a.click();                                          // Downloading with a click 
-      },
-    },
-  },
-            }
-        );
-        */
 
+
+        /*
+         *
+         *  Plotting State Space 1:
+         *
+         *  With lagrangian mechanics the state space is (q, dotq), where
+         *  q1 is the angle of the first rod (angle1)
+         *  dotq1 is the angular velocity of the first rod (angleVel1) 
+         *  
+         */
+
+        // Creating Fake Canvas for State Space 1
+        const stateSpaceCanvas1 = document.createElement('canvas')
+        document.getElementById('main').append(stateSpaceCanvas1)
+        for (let i = 0; i < 20; i++) {
+            var br = document.createElement('br')
+            document.getElementById('main').append(br)
+        }
+
+        // Preparing data that will be plotted
+        var data = [] 
+        this.dotq1q1.forEach( 
+            (item, index) => {
+                if (index == 0) return;
+                const [dotq1, q1] = item.split(',')
+                data.push({
+                    x: q1,
+                    y: dotq1
+                })
+        });
+        const stateSpace1Data = {
+            datasets: [{
+                label: 'Spazio delle Fasi 1',
+                data: data,
+                backgroundColor: 'rgb(255, 99, 132)'
+            }]
+        }
+
+        // Actually plotting data 
+        const stateSpaceCanvas1ChartConfig = {
+            type: 'scatter',
+            data: stateSpace1Data, 
+            options: {
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom'
+                    }
+                }
+            }
+        }
+        var myChart = new Chart(
+            stateSpaceCanvas1, 
+            stateSpaceCanvas1ChartConfig
+        )
+
+
+        /*
+         *
+         *  Plotting State Space 2:
+         *
+         *  With lagrangian mechanics the state space is (q, dotq), where
+         *  q2 is the angle of the first rod (angle2)
+         *  dotq2 is the angular velocity of the first rod (angleVel2) 
+         *  
+         */
+
+        // Creating Fake Canvas for State Space 2
+        const stateSpaceCanvas2 = document.createElement('canvas')
+        document.getElementById('main').append(stateSpaceCanvas2)
+        for (let i = 0; i < 20; i++) {
+            var br = document.createElement('br')
+            document.getElementById('main').append(br)
+        }
+
+        // Preparing data that will be plotted
+        var data = [] 
+        this.dotq2q2.forEach( 
+            (item, index) => {
+                if (index == 0) return;
+                const [dotq2, q2] = item.split(',')
+                data.push({
+                    x: q2,
+                    y: dotq2
+                })
+        });
+        const stateSpace2Data = {
+            datasets: [{
+                label: 'Spazio delle Fasi 2',
+                data: data,
+                backgroundColor: 'rgb(255, 99, 132)'
+            }]
+        }
+
+        // Actually plotting data 
+        const stateSpaceCanvas2ChartConfig = {
+            type: 'scatter',
+            data: stateSpace2Data, 
+            options: {
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom'
+                    }
+                }
+            }
+        }
+        var myChart = new Chart(
+            stateSpaceCanvas2, 
+            stateSpaceCanvas2ChartConfig
+        )
 
 
     }
 
 
 }
-
