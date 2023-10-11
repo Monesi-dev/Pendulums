@@ -212,8 +212,17 @@ function start(typeOfPendulum, pendulumData) {
     
     // The next animation will begin when a sufficient amount of time has elapsed
     while (Date.now() - start < dt);
-    requestAnimationFrame(step);
 
+    // If the final trajectory has been drawn the animation has to stop
+    if (!loopEnded) {
+      requestAnimationFrame(step);
+    }
+
+    // If the animation has stopped but the csv files have not been downloaded then
+    // the download will begin automatically
+    else if (!downloaded) {
+      pendulums[0].downloadCsvFiles()
+    }
   }
   
   simulationStartTime = Date.now()  
